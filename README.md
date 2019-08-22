@@ -7,3 +7,9 @@ finances.
 The main interface to the app is by running iOS shortcuts that launch the iOS
 app Pythonista which will prompt you for any necessary input, then send the
 request to a server where the information is stored in a database.
+
+#Setup
+
+    sudo pacman -S python pip nginx uwsgi sqlite
+
+Open ports 80 & 443
