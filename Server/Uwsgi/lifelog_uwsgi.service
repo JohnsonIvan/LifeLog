@@ -2,8 +2,13 @@
 Description=Start LifeLog's instance of uwsgi
 
 [Service]
-#ExecStart=uwsgi --ini /srv/LifeLog/uwsgi.ini
-ExecStart=uwsgi -s /tmp/lifeLog_uwsgi.socket --manage-script-name --mount /srv/LifeLog/test:test
+ExecStart=uwsgi --ini /srv/LifeLog/uwsgi.ini
+#ExecStart=uwsgi -s /tmp/lifeLog_uwsgi.socket --manage-script-name --mount /srv/LifeLog/test:app
+#ExecStart=uwsgi -s /tmp/lifeLog_uwsgi.socket --manage-script-name --mount /api/v1=/srv/LifeLog/test.py:app
+
+#ExecStart=uwsgi --http-socket 127.0.0.1:3031 --plugin python --wsgi-file ~/Code/LifeLog/Server/Src/test.py --master --processes 1 --threads 1 --stats 127.0.0.1:9191 --uid --gid --callable app --buffer-size 65535
+#ExecStart=uwsgi --socket 127.0.0.1:3031 --plugin python --wsgi-file /srv/LifeLog/test.py --master --processes 1 --threads 1 --uid --gid --callable app --buffer-size 65535
+#ExecStart=uwsgi --socket 127.0.0.1:3031 --plugin python --wsgi-file /srv/LifeLog/test.py --master --processes 1 --threads 1 --callable app --buffer-size 65535 --logto /tmp/lifelog_uwsgi.log
 User=http
 Group=http
 

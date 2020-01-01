@@ -13,3 +13,4 @@ request to a server where the information is stored in a database.
     sudo pacman -S python pip nginx uwsgi sqlite
 
 Open ports 80 & 443
+uwsgi-plugin-python
