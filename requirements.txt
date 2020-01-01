@@ -1,0 +1,33 @@
+Remote deployment:
+	./remoteDeploy $SERVER $PATH $COMMIT #probably want $SERVER to be root@foo, else permissions
+	1: /locally/ run: cd $(basename "$0")
+	2: if not initialized, COMMIT=$(somehow get the git commit hash from current working directory)
+	3: run remotely stuff (some sort of ssh to run a string (A), then use EOF magic to combine the remainder)
+	    A: ssh $SERVER
+	    B: cd $PATH
+	    C: git checkout $COMMIT
+	    D: ./deploy.bash
+
+* Start with tracking weight, that's trivial by comparison.
+
+* Two Generals Problem
+
+  Client generates a UUID for each request. If server does not ack the
+  request, the request is resent several times with the same UUID until the
+  server does ack it. The server has a "Request" database, which stores the
+  UUID, response code/headers, and a response BLOB (actually, just filename?
+  ¯\_(ツ)_/¯). NULL value means the request is still processing. Probs want a
+  @Request annotation that handles all of this (& authentication).
+
+  On client side, if server isn't responding ping OVH & google to test internet
+  connection. That way error messages can be more confident about whether or not
+  it's the client's fault.
+
+* Eventually, want a table describing what timezone the user is in
+  (UID, timezone name, timezone offset from UTC, UTC time at which the user
+  started living here).
+
+  SELECT *, MIN(start) FROM utcOffset WHERE start >= $(arg1)
+
+  All times in database are stored as UTC; if necessary convert to my then-local
+  timezone using the table.
