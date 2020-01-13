@@ -16,3 +16,13 @@ sudo certbot --noninteractive --agree-tos --nginx --domain lifelog.ivanjohnson.n
 echo "Restarting nginx"
 sudo systemctl enable nginx
 sudo systemctl restart nginx || (systemctl status nginx; exit 1)
+
+#uwsgi
+echo "Copying uwsgi files"
+sudo cp Config/wsgi_config.ini "$DIR_OUT"
+sudo cp Src/test.py "$DIR_OUT"
+sudo cp Config/lifelog_uwsgi.service "$DIR_SYSTEMD"
+echo "Restarting uwsgi"
+sudo systemctl daemon-reload
+sudo systemctl enable lifelog_uwsgi
+sudo systemctl restart lifelog_uwsgi || (sudo systemctl status lifelog_uwsgi; exit 1)
