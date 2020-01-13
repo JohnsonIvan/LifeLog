@@ -1,0 +1,1 @@
+rotate nginx logs. (from SimpleWebServer)
