@@ -2,7 +2,7 @@
 Description=Start LifeLog's instance of uwsgi
 
 [Service]
-ExecStart=uwsgi --ini /srv/LifeLog/uwsgi.ini
+ExecStart=uwsgi --ini /srv/http/LifeLog/wsgi_config.ini
 #ExecStart=uwsgi -s /tmp/lifeLog_uwsgi.socket --manage-script-name --mount /srv/LifeLog/test:app
 #ExecStart=uwsgi -s /tmp/lifeLog_uwsgi.socket --manage-script-name --mount /api/v1=/srv/LifeLog/test.py:app
 
