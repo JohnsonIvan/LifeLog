@@ -10,7 +10,7 @@ request to a server where the information is stored in a database.
 
 #Setup
 
-    sudo pacman -S python python-flask pip nginx uwsgi sqlite
+    sudo pacman -S python python-flask pip nginx uwsgi uwsgi-plugin-python sqlite
 
 Open ports 80 & 443
 uwsgi-plugin-python
