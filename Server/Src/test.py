@@ -10,6 +10,10 @@ def hello_world():
 def ping():
     return 'pong\n'
 
+@app.route('/html')
+def html():
+    return "<h1 style='color:blue'>Hello There!</h1>"
+
 @app.route('/fail')
 def fail():
     result = {'a': 'b'}
