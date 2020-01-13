@@ -3,9 +3,6 @@ Development process:
   * ./Server/local.bash: launches a simple server using the checked out code;
     used to test web apis
 
-  * ./Server/deploy.bash: copies the checked out code to server directories &
-    sets up systemd to launch them automatically
-
 * Start with tracking weight, that's trivial by comparison.
 
 * Two Generals Problem
