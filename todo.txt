@@ -25,3 +25,6 @@
 
   probs easiest to just have an additional entry here for each time that DST
   changes
+
+* deadman's switch. If more than n days pass without any changes, send a payload
+  over email. Optionally send a warning payload sooner.
