@@ -62,4 +62,7 @@ def create_app(test_config=None):
 
     db.init_app(app)
 
+    from . import weight
+    app.register_blueprint(weight.bp, url_prefix=BASE_URL + '/weight')
+
     return app
