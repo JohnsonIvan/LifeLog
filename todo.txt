@@ -8,8 +8,6 @@
   * marshmallow / flask-marshmallow
   * sqlalchemy / flask-sqlalchemy
 
-* Start with tracking weight, that's trivial by comparison.
-
 * Two Generals Problem
 
   Client generates a UUID for each request. If server does not ack the
