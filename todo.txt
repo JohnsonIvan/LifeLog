@@ -1,3 +1,10 @@
+* Learn about these packages; they seem like they would enable me to cleanup my
+  code a bit. All are available in Arch repos
+
+  * python-flask-migrate
+  * marshmallow / flask-marshmallow
+  * sqlalchemy / flask-sqlalchemy
+
 * Start with tracking weight, that's trivial by comparison.
 
 * Two Generals Problem
@@ -6,12 +13,19 @@
   request, the request is resent several times with the same UUID until the
   server does ack it. The server has a "Request" database, which stores the
   UUID, response code/headers, and a response BLOB (actually, just filename?
-  ¯\_(ツ)_/¯). NULL value means the request is still processing. Probs want a
-  @Request annotation that handles all of this (& authentication).
+  ¯\_(ツ)_/¯). NULL value means the request is still processing.
+
+  This is not necessary for endpoints that don't modify the server's state?
+  (including all GET requests)
 
   On client side, if server isn't responding ping OVH & google to test internet
   connection. That way error messages can be more confident about whether or not
   it's the client's fault.
+
+  I'll probably do this with a python decorator, but I should still investigate
+  the fact that flask might have a way of registering a function as a
+  preprocessor of sorts. Unless flask's way is unexpectedly awesome, I'd prefer
+  an explicit decorator over an implicit one.
 
 * Eventually, want a table describing what timezone the user is in
   (UID, timezone name, timezone offset from UTC, UTC time at which the user
