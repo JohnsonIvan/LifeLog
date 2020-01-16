@@ -15,13 +15,12 @@ def ping():
 
 @application.route(BASE_URL + '/html')
 def html():
-    body="<h1 style='color:blue'>Hello There!</h1>"
-    return flask.Response(body, mimetype='text/html')
+    return "<h1 style='color:blue'>Hello There!</h1>"
 
 @application.route(BASE_URL + '/fail')
 def fail():
     result = {'a': 'b'}
-    return flask.make_response(flask.jsonify(result), 500)
+    return (result, 500)
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0')
