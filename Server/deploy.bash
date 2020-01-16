@@ -21,6 +21,7 @@ sudo systemctl restart nginx || (systemctl status nginx; exit 1)
 
 #uwsgi
 echo "Copying uwsgi files"
+sudo systemctl stop lifelog_uwsgi
 sudo cp Config/wsgi_config.ini "$DIR_OUT"
 
 #TL;DR: sudo cp -r Code "$DIR_CODE", but preserve the existing subdir "instance"
@@ -42,7 +43,7 @@ sudo chmod 775 "${DIR_INSTANCE}"
 echo "Restarting uwsgi"
 sudo systemctl daemon-reload
 sudo systemctl enable lifelog_uwsgi
-sudo systemctl restart lifelog_uwsgi || (sudo systemctl status lifelog_uwsgi; exit 1)
+sudo systemctl start lifelog_uwsgi || (sudo systemctl status lifelog_uwsgi; exit 1)
 
 
 #database
