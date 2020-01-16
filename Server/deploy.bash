@@ -17,7 +17,7 @@ echo "Using certbot to upgrade to https"
 sudo certbot --noninteractive --agree-tos --nginx --domain lifelog.ivanjohnson.net --quiet
 echo "Restarting nginx"
 sudo systemctl enable nginx
-sudo systemctl restart nginx || (systemctl status nginx; exit 1)
+sudo systemctl reload nginx || (systemctl status nginx; exit 1)
 
 #uwsgi
 echo "Copying uwsgi files"
