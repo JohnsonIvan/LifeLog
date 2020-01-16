@@ -2,8 +2,10 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-DIR_OUT=/srv/LifeLog/
-DIR_SYSTEMD=/etc/systemd/system/
+DIR_OUT=/srv/LifeLog
+DIR_SYSTEMD=/etc/systemd/system
+DIR_CODE="${DIR_OUT}/Code"
+DIR_INSTANCE="${DIR_CODE}/instance"
 
 sudo mkdir -p "$DIR_OUT"
 
@@ -20,9 +22,29 @@ sudo systemctl restart nginx || (systemctl status nginx; exit 1)
 #uwsgi
 echo "Copying uwsgi files"
 sudo cp Config/wsgi_config.ini "$DIR_OUT"
-sudo cp Src/test.py "$DIR_OUT"
+sudo cp -r Code "$DIR_CODE"
 sudo cp Config/lifelog_uwsgi.service "$DIR_SYSTEMD"
+
+sudo mkdir -p "${DIR_INSTANCE}"
+sudo chown root:http "${DIR_INSTANCE}"
+sudo chmod 775 "${DIR_INSTANCE}"
+
 echo "Restarting uwsgi"
 sudo systemctl daemon-reload
 sudo systemctl enable lifelog_uwsgi
 sudo systemctl restart lifelog_uwsgi || (sudo systemctl status lifelog_uwsgi; exit 1)
+
+
+#database
+ans=""
+while [ "$ans" != "y" ] && [ "$ans" != "n" ] ; do
+	echo "Would you like to reinitialize the PROD database?"
+	echo "THIS WILL DESTROY ALL DATA CURRENTLY IN THE ###PROD### DATABASE"
+	echo -n "(y/n) "
+	read ans
+done
+if [ "$ans" = "y" ] ; then
+	cd "$DIR_CODE"
+	sudo -u http FLASK_APP=launcher:app flask init-db
+	cd -
+fi
