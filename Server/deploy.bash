@@ -22,12 +22,22 @@ sudo systemctl restart nginx || (systemctl status nginx; exit 1)
 #uwsgi
 echo "Copying uwsgi files"
 sudo cp Config/wsgi_config.ini "$DIR_OUT"
+
+#TL;DR: sudo cp -r Code "$DIR_CODE", but preserve the existing subdir "instance"
+[ -e "${DIR_OUT}/instance" ] && exit 1 # fail if exists
+[ -d "${DIR_CODE}/instance" ] && sudo mv "${DIR_CODE}/instance" "${DIR_OUT}"
+sudo rm -rf "$DIR_CODE"
 sudo cp -r Code "$DIR_CODE"
+sudo rm -rf "${DIR_CODE}/instance"
+[ -d "${DIR_OUT}/instance" ] && sudo mv "${DIR_OUT}/instance" "${DIR_CODE}"
+
+
 sudo cp Config/lifelog_uwsgi.service "$DIR_SYSTEMD"
 
 sudo mkdir -p "${DIR_INSTANCE}"
 sudo chown root:http "${DIR_INSTANCE}"
 sudo chmod 775 "${DIR_INSTANCE}"
+
 
 echo "Restarting uwsgi"
 sudo systemctl daemon-reload

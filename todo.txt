@@ -1,3 +1,6 @@
+* Flask's "instance" folder should absolutely not be in the code folder. Because
+  A: that makes no sense at all, and B: it complicates the deploy script.
+
 * Learn about these packages; they seem like they would enable me to cleanup my
   code a bit. All are available in Arch repos
 
