@@ -1,4 +1,4 @@
-#LifeLog
+# LifeLog
 
 LifeLog is a DIY life logging system. It is still in the very early stages of
 development, but eventually it will be able to track exersise, weight, time, and
@@ -8,7 +8,7 @@ The main interface to the app is by running iOS shortcuts that launch the iOS
 app Pythonista which will prompt you for any necessary input, then send the
 request to a server where the information is stored in a database.
 
-#Technical Overview of the Server
+# Technical Overview of the Server
 
 This section gives a summary of how the major software packages used by LifeLog
 interact, as well as additional recommendations on how to configure a server
