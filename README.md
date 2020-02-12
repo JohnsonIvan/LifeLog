@@ -26,12 +26,6 @@ of it's subdirectories, then nginx forwards the request to a
 cases, nginx will assume the url corresponds to static web content and try to
 serve find a file with an appropriate path to return.
 
-It is worth noting that on their own, the nginx config files provided in this
-repository actually just setup nginx to handle requests over http. However, the
-provided deployment scripts use [certbot](https://wiki.archlinux.org/index.php/Certbot)
-to automatically modify those config files to use https instead, and also
-redirect http traffic to https.
-
 The uwsgi server balances requests among a number of processes and threads
 before we finally get to the "real" code for handling requests, which is written
 in Python using the [flask](https://palletsprojects.com/p/flask/) framework.
