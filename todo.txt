@@ -1,3 +1,7 @@
+* Test cases
+
+* Authentication.
+
 * Flask's "instance" folder should absolutely not be in the code folder. Because
   A: that makes no sense at all, and B: it complicates the deploy script.
 
