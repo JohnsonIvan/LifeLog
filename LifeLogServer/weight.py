@@ -14,18 +14,21 @@ def record():
     dt = request.args.get('datetime', None, type=int)
     weight = request.args.get('weight', None, type=float)
 
-    if dt is None and weight is None:
-        return ("Query is missing both the datetime (int) and weight (float) parameters", 400)
-    elif dt is None:
-        return ("Query is missing the datetime (int) parameter", 400)
-    elif weight is None:
-        return ("Query is missing the weight (float) parameter", 400)
+    if dt is None or weight is None:
+        msg = ""
+        if dt is None and weight is None: # pragma: no cover
+            msg = "Query is missing both the datetime (int) and weight (float) parameters"
+        elif dt is None: # pragma: no cover
+            msg = "Query is missing the datetime (int) parameter"
+        elif weight is None: # pragma: no cover
+            msg = "Query is missing the weight (float) parameter"
+        return (msg, 400)
 
     now = time.time()
     if dt > now + sMAX_TIME_ERROR:
         sErr=dt - now
-        msg = f"Given time is {dt - time.time()} seconds in the future."
-        if sErr > 995*now:
+        msg = f"Given time is in the future."
+        if sErr > 995*now: # pragma: no cover
             msg += "\nMaybe the time parameter was provided in units of milliseconds instead of seconds?"
 
         return (msg, 400)
@@ -35,7 +38,6 @@ def record():
     db.execute('INSERT INTO weight (datetime, weight) VALUES (?, ?)',
                (dt, weight))
     db.commit()
-
 
     return "success", 200
 
