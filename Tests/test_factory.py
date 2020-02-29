@@ -39,6 +39,10 @@ def test_config():
     assert create_app({'TESTING': True}).testing
 
 
-def test_hello(client):
+def test_ping(client):
     response = client.get('/api/v1/ping')
     assert response.data == b'pong\n'
+
+def test_apiv(client):
+    response = client.get('/api_version')
+    assert response.data == b'0.4.0a0'
