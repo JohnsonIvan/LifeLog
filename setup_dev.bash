@@ -18,3 +18,6 @@ pip install Flask
 echo "Remember to source \"$(DIR)/$ENV_DIR/bin/activate\""
 
 pip install -e .
+
+#TODO: is this necessary now that setup.py has test dependencies?
+pip install pytest coverage
