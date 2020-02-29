@@ -2,7 +2,7 @@ import flask
 import os
 
 from . import db
-#from . import weight
+from . import weight
 
 API_VERSION="dev"
 
@@ -51,24 +51,8 @@ def create_app(test_config=None):
         result = {'a': 'b'}
         return (result, 500)
 
-    @app.route(BASE_URL + '/dbadd', methods=['POST'])
-    def dbadd():
-        dbs = db.get_db()
-
-        dbs.execute('INSERT INTO weight (datetime, weight) VALUES (0, 0.0)')
-        dbs.commit()
-        return ('done?', 200)
-
-    @app.route(BASE_URL + '/dbcount')
-    def dbtest():
-        dbs = db.get_db()
-
-        foo = dbs.execute('SELECT * FROM weight')
-        bar = len(foo.fetchall())
-        return f'count is {bar}'
-
     db.init_app(app)
 
-    #app.register_blueprint(weight.bp, url_prefix=BASE_URL + '/weight')
+    app.register_blueprint(weight.bp, url_prefix=BASE_URL + '/weight')
 
     return app
