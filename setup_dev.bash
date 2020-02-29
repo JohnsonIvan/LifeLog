@@ -16,3 +16,5 @@ python3 -m venv "$ENV_DIR"
 source "${ENV_DIR}/bin/activate"
 pip install Flask
 echo "Remember to source \"$(DIR)/$ENV_DIR/bin/activate\""
+
+pip install -e .
