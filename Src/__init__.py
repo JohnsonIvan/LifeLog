@@ -4,7 +4,7 @@ import os
 from . import db
 from . import weight
 
-API_VERSION="dev"
+API_VERSION="0.3"
 
 def create_app(test_config=None):
     # create and configure the app
