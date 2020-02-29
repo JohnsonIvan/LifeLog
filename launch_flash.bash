@@ -4,7 +4,7 @@ set -euo pipefail
 DIR="$(dirname "$0")"
 cd "$DIR"
 
-export FLASK_APP=./Src
+export FLASK_APP=./
 export FLASK_ENV=development
 
 if [ "${1:-}" = "--reinit" ] ; then

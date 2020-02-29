@@ -1,10 +1,11 @@
 import flask
 import os
+import pkg_resources
 
-from . import db
-from . import weight
+from LifeLogServer import db
+from LifeLogServer import weight
 
-API_VERSION="0.4-alpha"
+API_VERSION = pkg_resources.require("LifeLogServer")[0].version
 
 def create_app(test_config=None):
     # create and configure the app

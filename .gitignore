@@ -2,6 +2,7 @@
 /brain.txt
 /VEnv/
 /instance
+/lifelogserver.egg-info
 
 .#*
 __pycache__/
