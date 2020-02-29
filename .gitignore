@@ -1,7 +1,7 @@
 /brain.txt
-/VEnv/
 /instance
 /lifelogserver.egg-info
+/.venv
 
 .#*
 __pycache__/

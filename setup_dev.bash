@@ -6,7 +6,7 @@ cd "$DIR"
 
 sudo pacman --needed -Syu python python-pip sqlite
 
-ENV_DIR="VEnv"
+ENV_DIR=".venv"
 if [ -e "$ENV_DIR" ]; then
 	echo "ERROR: $ENV_DIR already exists"
 	exit 1
