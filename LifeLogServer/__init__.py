@@ -35,22 +35,9 @@ def create_app(test_config=None):
 
     BASE_URL = '/api/v1'
 
-    @app.route(BASE_URL + '/')
-    def hello_world():
-        return flask.Response('Hello, World!\n', mimetype='text/plain')
-
     @app.route(BASE_URL + '/ping')
     def ping():
         return flask.Response('pong\n', mimetype='text/plain')
-
-    @app.route(BASE_URL + '/html')
-    def html():
-        return "<h1 style='color:blue'>Hello There!</h1>"
-
-    @app.route(BASE_URL + '/fail')
-    def fail():
-        result = {'a': 'b'}
-        return (result, 500)
 
     db.init_app(app)
 
