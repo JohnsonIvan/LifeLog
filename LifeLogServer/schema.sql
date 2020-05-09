@@ -5,3 +5,10 @@ CREATE TABLE weight (
   datetime INTEGER,
   weight REAL
 );
+
+DROP TABLE IF EXISTS auth_tokens;
+
+CREATE TABLE auth_token (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  token TEXT UNIQUE
+);

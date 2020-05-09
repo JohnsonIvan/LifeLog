@@ -7,8 +7,9 @@ cd "$DIR"
 export FLASK_APP=./
 export FLASK_ENV=development
 
-if [ "${1:-}" = "reinit" ] ; then
+if [ "${1:-}" = "reinit-dev" ] ; then
 	flask init-db
+	"$0" dev-db 'INSERT INTO auth_token (token) VALUES ("dev-key")'
 elif [ "${1:-}" = "dev-db" ] ; then
 	shift
 	sqlite3 "${DEV_INSTANCE}/lifelog.sqlite" "$@"
@@ -22,7 +23,7 @@ else
 	echo "Valid subcommands are:"
 	echo -e "\tdev-db: a convenient alias for \"sqlite3\" configured to use the dev database"
 	echo -e "\thelp: show this menu"
-	echo -e "\treinit: run the flask command for reinitializing the database"
+	echo -e "\treinit-dev: reset the dev database to a known good state"
 	echo -e "\trun: run the flask server locally"
 	exit 1
 fi
