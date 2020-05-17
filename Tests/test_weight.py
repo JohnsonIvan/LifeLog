@@ -6,6 +6,7 @@ import LifeLogServer
 
 AUTH_HEADER='token'
 AUTH_TOKEN='test-key'
+AUTH_TOKEN_BAD=AUTH_TOKEN+'oiawejklfxcvkjlweeeoisdvwe'
 DEFAULT_HEADERS={AUTH_HEADER:AUTH_TOKEN}
 
 GET_URL='/api/v1/weight/get'
@@ -29,6 +30,24 @@ def test_get_missingParam(client):
         response = client.get(url, headers=DEFAULT_HEADERS)
         status = response.status_code
         assert status == HTTPStatus.BAD_REQUEST, f'key = "{key}"; url = "{url}"; status = {status}'
+
+def test_get_auth(client):
+    params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
+    url = GET_URL + '?' + params
+
+
+    response = client.get(url, headers=DEFAULT_HEADERS)
+    assert response.status_code == HTTPStatus.OK
+
+    headers = DEFAULT_HEADERS.copy()
+    headers.pop(AUTH_HEADER, None)
+    response = client.get(url, headers=headers)
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+    headers = DEFAULT_HEADERS.copy()
+    headers[AUTH_HEADER] = AUTH_TOKEN_BAD
+    response = client.get(url, headers=headers)
+    assert response.status_code == HTTPStatus.FORBIDDEN
 
 def test_record_happy(client):
     response = client.get('/api/v1/weight/get?since=0&before=2000000000&limit=3000&offset=0', headers=DEFAULT_HEADERS)
