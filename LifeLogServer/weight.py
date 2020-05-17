@@ -44,7 +44,7 @@ def record():
     return "success", 200
 
 @bp.route('/get')
-@auth.requireAuth
+@auth.requireAuth()
 def get():
     since = request.args.get('since', None, type=int)
     before = request.args.get('before', None, type=int)
