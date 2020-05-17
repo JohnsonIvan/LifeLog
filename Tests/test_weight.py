@@ -9,9 +9,18 @@ AUTH_TOKEN='test-key'
 AUTH_TOKEN_BAD=AUTH_TOKEN+'oiawejklfxcvkjlweeeoisdvwe'
 DEFAULT_HEADERS={AUTH_HEADER:AUTH_TOKEN}
 
-GET_URL='/api/v1/weight/get'
+WEIGHT_URL='/api/v1/weight'
+
+GET_URL=f'{WEIGHT_URL}/get'
 GET_HAPPY_PARAMS={'since':150, 'before':450, 'limit':1, 'offset':1}
 GET_HAPPY_RESULTS=b'300, 300.0\n'
+
+GET_ALL_SINCE=0
+GET_ALL_BEFORE=1000
+GET_ALL_COUNT=5
+GET_ALL_PARAMS={'since':GET_ALL_SINCE, 'before':GET_ALL_BEFORE, 'limit':2*GET_ALL_COUNT+100, 'offset':0}
+
+RECORD_URL=f'{WEIGHT_URL}/record'
 
 def test_get_happy(client):
     params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
@@ -50,34 +59,32 @@ def test_get_auth(client):
     assert response.status_code == HTTPStatus.FORBIDDEN
 
 def test_record_happy(client):
-    response = client.get('/api/v1/weight/get?since=0&before=2000000000&limit=3000&offset=0', headers=DEFAULT_HEADERS)
+    params = urllib.parse.urlencode(GET_ALL_PARAMS)
+    response = client.get(GET_URL + '?' + params, headers=DEFAULT_HEADERS)
     assert response.status_code == 200
     results = response.data.decode(response.charset, "strict").rstrip().split('\n')
     assert len(results) == 5
 
-    response = client.post('/api/v1/weight/record?weight=0.1&datetime=450', headers=DEFAULT_HEADERS)
-    assert response.status_code == 200
-    assert response.charset == 'utf-8'
 
-    response = client.get('/api/v1/weight/get?since=0&before=2000000000&limit=3000&offset=0', headers=DEFAULT_HEADERS)
+    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
+    response = client.post(RECORD_URL + '?' + params, headers=DEFAULT_HEADERS)
+    assert response.status_code == 200
+
+
+    params = urllib.parse.urlencode(GET_ALL_PARAMS)
+    response = client.get(GET_URL + '?' + params, headers=DEFAULT_HEADERS)
     assert response.status_code == 200
     results = response.data.decode(response.charset, "strict").rstrip().split('\n')
     assert len(results) == 6
     assert '450, 0.1' in results
 
-def test_record_future(client):
-    response = client.post(f'/api/v1/weight/record?weight=0.1&datetime=2000000000', headers=DEFAULT_HEADERS)
-    assert response.status_code == 400
-def test_record_missing_weight(client):
-    response = client.post(f'/api/v1/weight/record?datetime=0', headers=DEFAULT_HEADERS)
-    assert response.status_code == 400
-def test_record_missing_date(client):
-    response = client.post(f'/api/v1/weight/record?weight=0.1', headers=DEFAULT_HEADERS)
-    assert response.status_code == 400
-
-def test_record_invalid_weight(client):
-    response = client.post('/api/v1/weight/record?weight=hello&datetime=456', headers=DEFAULT_HEADERS)
-    assert response.status_code == 400
-def test_record_invalid_date(client):
-    response = client.post('/api/v1/weight/record?weight=1&datetime=hello', headers=DEFAULT_HEADERS)
-    assert response.status_code == 400
+def test_record_invalid(client):
+    param_arr = [{'weight': 0.1, 'datetime': 2000000000},
+                 {'datetime': 0},
+                 {'weight': 0.1},
+                 {'weight': 'hello', 'datetime': 0},
+                 {'weight': 0.1, 'datetime': 'hello'}]
+    for params in param_arr:
+        params = urllib.parse.urlencode(params)
+        response = client.post(RECORD_URL + '?' + params, headers=DEFAULT_HEADERS)
+        assert response.status_code == 400
