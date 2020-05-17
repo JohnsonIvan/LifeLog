@@ -1,29 +1,33 @@
 import time
+import urllib
+from http import HTTPStatus
 
 import LifeLogServer
 
-DEFAULT_HEADERS={'token':'test-key'}
+AUTH_HEADER='token'
+AUTH_TOKEN='test-key'
+DEFAULT_HEADERS={AUTH_HEADER:AUTH_TOKEN}
+
+GET_URL='/api/v1/weight/get'
+GET_HAPPY_PARAMS={'since':0, 'before':2000000000, 'limit':3000, 'offset':0}
 
 def test_get_happy(client):
-    response = client.get('/api/v1/weight/get?since=0&before=2000000000&limit=3000&offset=0', headers=DEFAULT_HEADERS)
-    assert response.status_code == 200
+    params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
+    response = client.get(GET_URL + '?' + params, headers=DEFAULT_HEADERS)
+    assert response.status_code == HTTPStatus.OK
     assert response.charset == 'utf-8'
     assert response.mimetype == 'text/csv'
     assert response.data == b'123, 80.0\n'
 
-def test_get_badSince(client):
-    response = client.get('/api/v1/weight/get?before=2000000000&limit=3000&offset=0', headers=DEFAULT_HEADERS)
-    assert response.status_code == 400
-def test_get_badBefore(client):
-    response = client.get('/api/v1/weight/get?since=0&limit=3000&offset=0', headers=DEFAULT_HEADERS)
-    assert response.status_code == 400
-def test_get_badLimit(client):
-    response = client.get('/api/v1/weight/get?since=0&before=2000000000&offset=0', headers=DEFAULT_HEADERS)
-    assert response.status_code == 400
-def test_get_badOffset(client):
-    response = client.get('/api/v1/weight/get?since=0&before=2000000000&limit=3000', headers=DEFAULT_HEADERS)
-    assert response.status_code == 400
-
+def test_get_missingParam(client):
+    for key in ['since', 'before', 'limit', 'offset']:
+        params = GET_HAPPY_PARAMS.copy()
+        params.pop(key, None)
+        params = urllib.parse.urlencode(params)
+        url = GET_URL + '?' + params
+        response = client.get(url, headers=DEFAULT_HEADERS)
+        status = response.status_code
+        assert status == HTTPStatus.BAD_REQUEST, f'key = "{key}"; url = "{url}"; status = {status}'
 
 def test_record_happy(client):
     response = client.get('/api/v1/weight/get?since=0&before=2000000000&limit=3000&offset=0', headers=DEFAULT_HEADERS)
