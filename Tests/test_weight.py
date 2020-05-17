@@ -9,7 +9,8 @@ AUTH_TOKEN='test-key'
 DEFAULT_HEADERS={AUTH_HEADER:AUTH_TOKEN}
 
 GET_URL='/api/v1/weight/get'
-GET_HAPPY_PARAMS={'since':0, 'before':2000000000, 'limit':3000, 'offset':0}
+GET_HAPPY_PARAMS={'since':150, 'before':450, 'limit':1, 'offset':1}
+GET_HAPPY_RESULTS=b'300, 300.0\n'
 
 def test_get_happy(client):
     params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
@@ -17,7 +18,7 @@ def test_get_happy(client):
     assert response.status_code == HTTPStatus.OK
     assert response.charset == 'utf-8'
     assert response.mimetype == 'text/csv'
-    assert response.data == b'123, 80.0\n'
+    assert response.data == GET_HAPPY_RESULTS
 
 def test_get_missingParam(client):
     for key in ['since', 'before', 'limit', 'offset']:
@@ -32,14 +33,18 @@ def test_get_missingParam(client):
 def test_record_happy(client):
     response = client.get('/api/v1/weight/get?since=0&before=2000000000&limit=3000&offset=0', headers=DEFAULT_HEADERS)
     assert response.status_code == 200
+    results = response.data.decode(response.charset, "strict").rstrip().split('\n')
+    assert len(results) == 5
 
-    response = client.post('/api/v1/weight/record?weight=0.1&datetime=456', headers=DEFAULT_HEADERS)
+    response = client.post('/api/v1/weight/record?weight=0.1&datetime=450', headers=DEFAULT_HEADERS)
     assert response.status_code == 200
     assert response.charset == 'utf-8'
 
     response = client.get('/api/v1/weight/get?since=0&before=2000000000&limit=3000&offset=0', headers=DEFAULT_HEADERS)
     assert response.status_code == 200
-    assert response.data.decode(response.charset, "strict").count('\n') == 2
+    results = response.data.decode(response.charset, "strict").rstrip().split('\n')
+    assert len(results) == 6
+    assert '450, 0.1' in results
 
 def test_record_future(client):
     response = client.post(f'/api/v1/weight/record?weight=0.1&datetime=2000000000', headers=DEFAULT_HEADERS)
