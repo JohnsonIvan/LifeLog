@@ -19,7 +19,7 @@ def requireAuth(func=None, /):
         rows = db.execute('SELECT * FROM auth_token WHERE token = ?', (givenToken,)).fetchone()
         db.commit()
 
-        if len(rows) == 0:
+        if rows is None or len(rows) == 0:
             return ("The provided auth token does not have access to this resource", HTTPStatus.FORBIDDEN)
         return func(*args, *kwargs)
     return wrapper
