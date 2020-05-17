@@ -9,6 +9,9 @@ export FLASK_ENV=development
 
 if [ "${1:-}" = "reinit" ] ; then
 	flask init-db
+elif [ "${1:-}" = "dev-db" ] ; then
+	shift
+	sqlite3 "${DEV_INSTANCE}/lifelog.sqlite" "$@"
 elif [ "${1:-}" = "run" ] ; then
 	flask run --host=0.0.0.0
 else
@@ -17,6 +20,7 @@ else
 	fi
 	echo "The syntax for using this command is \"$0 \${subcommand}\"."
 	echo "Valid subcommands are:"
+	echo -e "\tdev-db: a convenient alias for \"sqlite3\" configured to use the dev database"
 	echo -e "\thelp: show this menu"
 	echo -e "\treinit: run the flask command for reinitializing the database"
 	echo -e "\trun: run the flask server locally"
