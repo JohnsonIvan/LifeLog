@@ -88,3 +88,21 @@ def test_record_invalid(client):
         params = urllib.parse.urlencode(params)
         response = client.post(RECORD_URL + '?' + params, headers=DEFAULT_HEADERS)
         assert response.status_code == 400
+
+def test_record_auth(client):
+    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
+    url = RECORD_URL + '?' + params
+
+
+    response = client.post(url, headers=DEFAULT_HEADERS)
+    assert response.status_code == HTTPStatus.OK
+
+    headers = DEFAULT_HEADERS.copy()
+    headers.pop(AUTH_HEADER, None)
+    response = client.post(url, headers=headers)
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+    headers = DEFAULT_HEADERS.copy()
+    headers[AUTH_HEADER] = AUTH_TOKEN_BAD
+    response = client.post(url, headers=headers)
+    assert response.status_code == HTTPStatus.FORBIDDEN
