@@ -3,6 +3,7 @@ import time
 
 from flask import request
 from . import db as database
+from . import auth
 
 bp = f.Blueprint('weight', __name__)
 
@@ -10,6 +11,7 @@ bp = f.Blueprint('weight', __name__)
 sMAX_TIME_ERROR = 300
 
 @bp.route('/record', methods=['POST'])
+@auth.requireAuth
 def record():
     dt = request.args.get('datetime', None, type=int)
     weight = request.args.get('weight', None, type=float)
@@ -42,6 +44,7 @@ def record():
     return "success", 200
 
 @bp.route('/get')
+@auth.requireAuth
 def get():
     since = request.args.get('since', None, type=int)
     before = request.args.get('before', None, type=int)
