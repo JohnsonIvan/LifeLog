@@ -33,13 +33,13 @@
 import sqlite3
 
 import pytest
-from LifeLogServer.db import get_db
+import LifeLogServer
 
 
 def test_get_close_db(app):
     with app.app_context():
-        db = get_db()
-        assert db is get_db()
+        db = LifeLogServer.database.get_db()
+        assert db is LifeLogServer.database.get_db()
 
     with pytest.raises(sqlite3.ProgrammingError) as e:
         db.execute('SELECT 1')
@@ -53,7 +53,7 @@ def test_init_db_command(runner, monkeypatch):
     def fake_init_db():
         Recorder.called = True
 
-    monkeypatch.setattr('LifeLogServer.db.init_db', fake_init_db)
+    monkeypatch.setattr('LifeLogServer.database.init_db', fake_init_db)
     result = runner.invoke(args=['init-db'])
     assert 'Initialized' in result.output
     assert Recorder.called

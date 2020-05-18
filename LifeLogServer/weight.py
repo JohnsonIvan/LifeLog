@@ -2,7 +2,7 @@ import flask as f
 import time
 
 from flask import request
-from . import db as database
+from . import database
 from . import auth
 
 bp = f.Blueprint('weight', __name__)

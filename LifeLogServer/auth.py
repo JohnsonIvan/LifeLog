@@ -1,7 +1,7 @@
 import flask as f
 import functools
 
-from . import db as database
+from . import database
 
 from http import HTTPStatus
 

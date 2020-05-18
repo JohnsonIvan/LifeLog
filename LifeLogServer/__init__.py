@@ -2,7 +2,7 @@ import flask
 import os
 import pkg_resources
 
-from LifeLogServer import db
+from LifeLogServer import database
 from LifeLogServer import weight
 
 API_VERSION = pkg_resources.require("LifeLogServer")[0].version
@@ -39,7 +39,7 @@ def create_app(test_config=None):
     def ping():
         return flask.Response('pong\n', mimetype='text/plain')
 
-    db.init_app(app)
+    database.init_app(app)
 
     app.register_blueprint(weight.bp, url_prefix=BASE_URL + '/weight')
 
