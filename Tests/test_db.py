@@ -33,6 +33,10 @@
 import sqlite3
 
 import pytest
+
+from http import HTTPStatus
+
+
 import LifeLogServer
 
 
@@ -57,3 +61,35 @@ def test_init_db_command(runner, monkeypatch):
     result = runner.invoke(args=['init-db'])
     assert 'Initialized' in result.output
     assert Recorder.called
+
+def test_autocommitter(runner, monkeypatch):
+    class FakeDB():
+        foo = True
+        committed = False
+        def commit(self):
+            self.committed = True
+
+    fakeDB = FakeDB()
+
+    def getFakeDB():
+        return fakeDB
+
+    monkeypatch.setattr('LifeLogServer.database.get_db', getFakeDB)
+
+    @LifeLogServer.database.get_autocommit_db()
+    def fun1(arg1, arg2, /, arg3, arg4, *, db, arg5=5, arg6, code):
+        assert arg1 == 1
+        assert arg2 == 2
+        assert arg3 == 3
+        assert arg4 == 4
+        assert arg5 == 5
+        assert arg6 == 6
+        assert db is fakeDB
+        assert not db.committed
+        return ("yolo", code)
+
+    fun1(1, 2, 3, arg5=5, arg6=6, arg4=4, code=HTTPStatus.OK)
+    assert fakeDB.committed
+    fakeDB.committed = False
+    fun1(1, 2, 3, arg5=5, arg6=6, arg4=4, code=HTTPStatus.BAD_REQUEST) # arbitrary code != OK
+    assert not fakeDB.committed
