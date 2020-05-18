@@ -11,8 +11,9 @@ bp = f.Blueprint('weight', __name__)
 sMAX_TIME_ERROR = 300
 
 @bp.route('/record', methods=['POST'])
+@database.get_autocommit_db
 @auth.requireAuth
-def record():
+def record(*, db):
     dt = request.args.get('datetime', None, type=int)
     weight = request.args.get('weight', None, type=float)
 
@@ -35,11 +36,8 @@ def record():
 
         return (msg, 400)
 
-    db = database.get_db()
-
     db.execute('INSERT INTO weight (datetime, weight) VALUES (?, ?)',
                (dt, weight))
-    db.commit()
 
     return "success", 200
 
