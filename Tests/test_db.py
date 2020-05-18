@@ -33,13 +33,17 @@
 import sqlite3
 
 import pytest
-from LifeLogServer.db import get_db
+
+from http import HTTPStatus
+
+
+import LifeLogServer
 
 
 def test_get_close_db(app):
     with app.app_context():
-        db = get_db()
-        assert db is get_db()
+        db = LifeLogServer.database.get_db()
+        assert db is LifeLogServer.database.get_db()
 
     with pytest.raises(sqlite3.ProgrammingError) as e:
         db.execute('SELECT 1')
@@ -53,7 +57,39 @@ def test_init_db_command(runner, monkeypatch):
     def fake_init_db():
         Recorder.called = True
 
-    monkeypatch.setattr('LifeLogServer.db.init_db', fake_init_db)
+    monkeypatch.setattr('LifeLogServer.database.init_db', fake_init_db)
     result = runner.invoke(args=['init-db'])
     assert 'Initialized' in result.output
     assert Recorder.called
+
+def test_autocommitter(runner, monkeypatch):
+    class FakeDB():
+        foo = True
+        committed = False
+        def commit(self):
+            self.committed = True
+
+    fakeDB = FakeDB()
+
+    def getFakeDB():
+        return fakeDB
+
+    monkeypatch.setattr('LifeLogServer.database.get_db', getFakeDB)
+
+    @LifeLogServer.database.get_autocommit_db()
+    def fun1(arg1, arg2, /, arg3, arg4, *, db, arg5=5, arg6, code):
+        assert arg1 == 1
+        assert arg2 == 2
+        assert arg3 == 3
+        assert arg4 == 4
+        assert arg5 == 5
+        assert arg6 == 6
+        assert db is fakeDB
+        assert not db.committed
+        return ("yolo", code)
+
+    fun1(1, 2, 3, arg5=5, arg6=6, arg4=4, code=HTTPStatus.OK)
+    assert fakeDB.committed
+    fakeDB.committed = False
+    fun1(1, 2, 3, arg5=5, arg6=6, arg4=4, code=HTTPStatus.BAD_REQUEST) # arbitrary code != OK
+    assert not fakeDB.committed

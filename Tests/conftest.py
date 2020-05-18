@@ -36,8 +36,7 @@ import tempfile
 
 import pytest
 #import pdb; pdb.set_trace()
-from LifeLogServer import create_app
-from LifeLogServer.db import get_db, init_db
+import LifeLogServer
 
 with open(os.path.join(os.path.dirname(__file__), 'data_default.sql'), 'rb') as f:
     _data_sql = f.read().decode('utf8')
@@ -47,14 +46,14 @@ with open(os.path.join(os.path.dirname(__file__), 'data_default.sql'), 'rb') as 
 def app():
     db_fd, db_path = tempfile.mkstemp()
 
-    app = create_app({
+    app = LifeLogServer.create_app({
         'TESTING': True,
         'DATABASE': db_path,
     })
 
     with app.app_context():
-        init_db()
-        get_db().executescript(_data_sql)
+        LifeLogServer.database.init_db()
+        LifeLogServer.database.get_db().executescript(_data_sql)
 
     yield app
 
