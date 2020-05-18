@@ -73,7 +73,7 @@ def init_db():
 def get_autocommit_db(func=None, /): #TODO: Positional-only parameters indicator '/' after func
     AUTH_HEADER="token"
     if not func:
-        return functools.partial(modifier, dbArgName=dbArgName)
+        return functools.partial(get_autocommit_db)
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         db = get_db()
@@ -88,6 +88,8 @@ def get_autocommit_db(func=None, /): #TODO: Positional-only parameters indicator
             (_, status_code) = response
         elif isinstance(response, f.Response):
             status_code = response.status_code
+        else:
+            assert False, "Unrecognized response from function decorated by get_autocommit_db"
 
         if status_code == HTTPStatus.OK:
             db.commit()
