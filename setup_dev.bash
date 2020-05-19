@@ -17,7 +17,7 @@ source "${ENV_DIR}/bin/activate"
 pip install -e '.[test]'
 
 echo initializing database
-bash flask.bash reinit && echo database initialization successful
+bash flask.bash reinit-dev && echo database initialization successful
 
 echo running tests now
 bash test.bash --coverage

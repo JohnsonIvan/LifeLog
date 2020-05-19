@@ -7,6 +7,8 @@ cd "$DIR"
 export FLASK_APP=./
 export FLASK_ENV=development
 
+DEV_INSTANCE=instance
+
 if [ "${1:-}" = "reinit-dev" ] ; then
 	flask init-db
 	"$0" dev-db 'INSERT INTO auth_token (token) VALUES ("dev-key")'
