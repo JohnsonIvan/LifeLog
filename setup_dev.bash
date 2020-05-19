@@ -4,7 +4,9 @@ set -euo pipefail
 DIR="$(dirname "$0")"
 cd "$DIR"
 
-sudo pacman --needed -Syu python python-pip sqlite
+REQUIRED_PACKAGES="python python-pip sqlite"
+
+pacman -Qi $REQUIRED_PACKAGES > /dev/null || sudo pacman --needed -Syu $REQUIRED_PACKAGES
 
 ENV_DIR=".venv"
 if [ -e "$ENV_DIR" ]; then
