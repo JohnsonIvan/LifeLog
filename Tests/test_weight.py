@@ -4,10 +4,8 @@ from http import HTTPStatus
 
 import LifeLogServer
 
-AUTH_HEADER='token'
-AUTH_TOKEN='test-key'
-AUTH_TOKEN_BAD=AUTH_TOKEN+'oiawejklfxcvkjlweeeoisdvwe'
-DEFAULT_HEADERS={AUTH_HEADER:AUTH_TOKEN}
+
+import auth_tests
 
 WEIGHT_URL='/api/v1/weight'
 
@@ -24,7 +22,7 @@ RECORD_URL=f'{WEIGHT_URL}/record'
 
 def test_get_happy(client):
     params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
-    response = client.get(GET_URL + '?' + params, headers=DEFAULT_HEADERS)
+    response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
     assert response.charset == 'utf-8'
     assert response.mimetype == 'text/csv'
@@ -36,7 +34,7 @@ def test_get_missingParam(client):
         params.pop(key, None)
         params = urllib.parse.urlencode(params)
         url = GET_URL + '?' + params
-        response = client.get(url, headers=DEFAULT_HEADERS)
+        response = client.get(url, headers=auth_tests.AUTH_HEADERS)
         status = response.status_code
         assert status == HTTPStatus.BAD_REQUEST, f'key = "{key}"; url = "{url}"; status = {status}'
 
@@ -44,35 +42,24 @@ def test_get_auth(client):
     params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
     url = GET_URL + '?' + params
 
+    auth_tests.run_tests(client.get, url)
 
-    response = client.get(url, headers=DEFAULT_HEADERS)
-    assert response.status_code == HTTPStatus.OK
-
-    headers = DEFAULT_HEADERS.copy()
-    headers.pop(AUTH_HEADER, None)
-    response = client.get(url, headers=headers)
-    assert response.status_code == HTTPStatus.UNAUTHORIZED
-
-    headers = DEFAULT_HEADERS.copy()
-    headers[AUTH_HEADER] = AUTH_TOKEN_BAD
-    response = client.get(url, headers=headers)
-    assert response.status_code == HTTPStatus.FORBIDDEN
 
 def test_record_happy(client):
     params = urllib.parse.urlencode(GET_ALL_PARAMS)
-    response = client.get(GET_URL + '?' + params, headers=DEFAULT_HEADERS)
+    response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == 200
     results = response.data.decode(response.charset, "strict").rstrip().split('\n')
     assert len(results) == 5
 
 
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
-    response = client.post(RECORD_URL + '?' + params, headers=DEFAULT_HEADERS)
+    response = client.post(RECORD_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == 200
 
 
     params = urllib.parse.urlencode(GET_ALL_PARAMS)
-    response = client.get(GET_URL + '?' + params, headers=DEFAULT_HEADERS)
+    response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == 200
     results = response.data.decode(response.charset, "strict").rstrip().split('\n')
     assert len(results) == 6
@@ -86,23 +73,11 @@ def test_record_invalid(client):
                  {'weight': 0.1, 'datetime': 'hello'}]
     for params in param_arr:
         params = urllib.parse.urlencode(params)
-        response = client.post(RECORD_URL + '?' + params, headers=DEFAULT_HEADERS)
+        response = client.post(RECORD_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
         assert response.status_code == 400
 
 def test_record_auth(client):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
     url = RECORD_URL + '?' + params
 
-
-    response = client.post(url, headers=DEFAULT_HEADERS)
-    assert response.status_code == HTTPStatus.OK
-
-    headers = DEFAULT_HEADERS.copy()
-    headers.pop(AUTH_HEADER, None)
-    response = client.post(url, headers=headers)
-    assert response.status_code == HTTPStatus.UNAUTHORIZED
-
-    headers = DEFAULT_HEADERS.copy()
-    headers[AUTH_HEADER] = AUTH_TOKEN_BAD
-    response = client.post(url, headers=headers)
-    assert response.status_code == HTTPStatus.FORBIDDEN
+    auth_tests.run_tests(client.post, url)
