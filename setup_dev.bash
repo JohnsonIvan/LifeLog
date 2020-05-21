@@ -4,6 +4,8 @@ set -euo pipefail
 DIR="$(dirname "$0")"
 cd "$DIR"
 
+git config --local core.hooksPath .GitHooks
+
 REQUIRED_PACKAGES="python python-pip sqlite"
 
 pacman -Qi $REQUIRED_PACKAGES > /dev/null || sudo pacman --needed -Syu $REQUIRED_PACKAGES
