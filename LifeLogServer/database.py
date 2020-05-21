@@ -35,7 +35,9 @@ import sqlite3
 
 import click
 import flask as f
+import functools
 
+from http import HTTPStatus
 
 def get_db():
     """Connect to the application's configured database. The connection
@@ -67,6 +69,30 @@ def init_db():
 
     with f.current_app.open_resource("schema.sql") as file:
         db.executescript(file.read().decode("utf8"))
+
+def get_autocommit_db(func=None, /):
+    AUTH_HEADER="token"
+    if not func:
+        return functools.partial(get_autocommit_db)
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        response = func(*args, **kwargs)
+
+        status_code = None
+        if isinstance(response, tuple):
+            (_, status_code) = response
+        elif isinstance(response, f.Response):
+            status_code = response.status_code
+        else:
+            assert False, "Unrecognized response from function decorated by get_autocommit_db"
+
+        if status_code == HTTPStatus.OK:
+            db = get_db()
+            db.commit()
+
+        return response
+    return wrapper
+
 
 
 @click.command("init-db")

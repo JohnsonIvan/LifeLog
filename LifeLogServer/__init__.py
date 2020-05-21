@@ -1,10 +1,11 @@
 import flask
 import os
+import pkg_resources
 
-from . import db
-from . import weight
+from LifeLogServer import database
+from LifeLogServer import weight
 
-API_VERSION="0.3"
+API_VERSION = pkg_resources.require("LifeLogServer")[0].version
 
 def create_app(test_config=None):
     # create and configure the app
@@ -34,24 +35,11 @@ def create_app(test_config=None):
 
     BASE_URL = '/api/v1'
 
-    @app.route(BASE_URL + '/')
-    def hello_world():
-        return flask.Response('Hello, World!\n', mimetype='text/plain')
-
     @app.route(BASE_URL + '/ping')
     def ping():
         return flask.Response('pong\n', mimetype='text/plain')
 
-    @app.route(BASE_URL + '/html')
-    def html():
-        return "<h1 style='color:blue'>Hello There!</h1>"
-
-    @app.route(BASE_URL + '/fail')
-    def fail():
-        result = {'a': 'b'}
-        return (result, 500)
-
-    db.init_app(app)
+    database.init_app(app)
 
     app.register_blueprint(weight.bp, url_prefix=BASE_URL + '/weight')
 

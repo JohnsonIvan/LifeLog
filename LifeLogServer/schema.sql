@@ -1,0 +1,21 @@
+DROP TABLE IF EXISTS weight;
+CREATE TABLE weight (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  datetime INTEGER,
+  weight REAL
+);
+
+
+DROP TABLE IF EXISTS auth_token;
+CREATE TABLE auth_token (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  token TEXT UNIQUE
+);
+
+
+DROP TABLE IF EXISTS cache;
+CREATE TABLE cache (
+  uuid TEXT PRIMARY KEY,
+  request_time INTEGER,
+  response BLOB
+)
