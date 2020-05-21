@@ -8,6 +8,7 @@ import flask
 import LifeLogServer
 import uuid
 
+@pytest.mark.unit
 def test_cache(app, monkeypatch):
     count = 0
     @LifeLogServer.cache.cache

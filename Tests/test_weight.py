@@ -7,6 +7,7 @@ import LifeLogServer
 
 import auth_tests
 import test_db
+import pytest
 
 WEIGHT_URL='/api/v1/weight'
 
@@ -21,6 +22,7 @@ GET_ALL_PARAMS={'since':GET_ALL_SINCE, 'before':GET_ALL_BEFORE, 'limit':2*GET_AL
 
 RECORD_URL=f'{WEIGHT_URL}/record'
 
+@pytest.mark.unit
 def test_get_happy(client):
     params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
     response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
@@ -29,6 +31,7 @@ def test_get_happy(client):
     assert response.mimetype == 'text/csv'
     assert response.data == GET_HAPPY_RESULTS
 
+@pytest.mark.unit
 def test_get_missingParam(client):
     for key in ['since', 'before', 'limit', 'offset']:
         params = GET_HAPPY_PARAMS.copy()
@@ -39,6 +42,7 @@ def test_get_missingParam(client):
         status = response.status_code
         assert status == HTTPStatus.BAD_REQUEST, f'key = "{key}"; url = "{url}"; status = {status}'
 
+@pytest.mark.integration
 def test_get_auth(client):
     params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
     url = GET_URL + '?' + params
@@ -46,6 +50,7 @@ def test_get_auth(client):
     auth_tests.run_tests(client.get, url)
 
 
+@pytest.mark.unit
 def test_record_happy(client):
     params = urllib.parse.urlencode(GET_ALL_PARAMS)
     response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
@@ -66,6 +71,7 @@ def test_record_happy(client):
     assert len(results) == 6
     assert '450, 0.1' in results
 
+@pytest.mark.unit
 def test_record_invalid(client):
     param_arr = [{'weight': 0.1, 'datetime': 2000000000},
                  {'datetime': 0},
@@ -77,17 +83,17 @@ def test_record_invalid(client):
         response = client.post(RECORD_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
         assert response.status_code == 400
 
+@pytest.mark.integration
 def test_record_auth(client):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
     url = RECORD_URL + '?' + params
 
     auth_tests.run_tests(client.post, url)
 
+@pytest.mark.integration
 def test_record_commits(client, monkeypatch):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
     url = RECORD_URL + '?' + params
-
-    #import pdb; pdb.set_trace()
 
     test_db.count_commits(client.post, url, monkeypatch, expected_cc=1, headers=auth_tests.AUTH_HEADERS)
 
