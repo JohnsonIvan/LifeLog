@@ -78,7 +78,6 @@ def get_autocommit_db(func=None, /): #TODO: Positional-only parameters indicator
     def wrapper(*args, **kwargs):
         db = get_db()
 
-        #import pdb; pdb.set_trace()
         kwargs['db'] = db
 
         response = func(*args, **kwargs)

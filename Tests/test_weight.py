@@ -6,6 +6,7 @@ import LifeLogServer
 
 
 import auth_tests
+import test_db
 
 WEIGHT_URL='/api/v1/weight'
 
@@ -81,3 +82,17 @@ def test_record_auth(client):
     url = RECORD_URL + '?' + params
 
     auth_tests.run_tests(client.post, url)
+
+def test_record_commits(client, monkeypatch):
+    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
+    url = RECORD_URL + '?' + params
+
+    #import pdb; pdb.set_trace()
+
+    test_db.count_commits(client.post, url, monkeypatch, expected_cc=1, headers=auth_tests.AUTH_HEADERS)
+
+    def fakeTime():
+        raise Exception("asdf")
+
+    monkeypatch.setattr('time.time', fakeTime)
+    test_db.count_commits(client.post, url, monkeypatch, expected_cc=0, headers=auth_tests.AUTH_HEADERS, expected_exception=Exception)
