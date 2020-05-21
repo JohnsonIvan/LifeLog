@@ -25,7 +25,7 @@ def record():
             msg = "Query is missing the datetime (int) parameter"
         elif weight is None: # pragma: no cover
             msg = "Query is missing the weight (float) parameter"
-        return (msg, 400)
+        return (msg, HTTPStatus.BAD_REQUEST)
 
     now = time.time()
     if dt > now + sMAX_TIME_ERROR:
@@ -34,13 +34,13 @@ def record():
         if sErr > 995*now: # pragma: no cover
             msg += "\nMaybe the time parameter was provided in units of milliseconds instead of seconds?"
 
-        return (msg, 400)
+        return (msg, HTTPStatus.BAD_REQUEST)
 
     db = database.get_db()
     db.execute('INSERT INTO weight (datetime, weight) VALUES (?, ?)',
                (dt, weight))
 
-    return "success", 200
+    return "success", HTTPStatus.OK
 
 @bp.route('/get')
 @auth.requireAuth()
