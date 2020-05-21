@@ -62,34 +62,46 @@ def test_init_db_command(runner, monkeypatch):
     assert 'Initialized' in result.output
     assert Recorder.called
 
-def test_autocommitter(runner, monkeypatch):
-    class FakeDB():
-        foo = True
-        committed = False
-        def commit(self):
-            self.committed = True
+def count_commits(method, url, monkeypatch, expected_cc, headers={}, expected_exception=None):
+    realGetDB = LifeLogServer.database.get_db
+    commit_call_count = 0
+    getdb_call_count = 0
+    def fakeGetDB():
+        if "ans" in fakeGetDB.__dict__:
+            return fakeGetDB.ans
+        nonlocal getdb_call_count
+        if getdb_call_count != 0:
+            raise Exception()
+        getdb_call_count = getdb_call_count+ 1
 
-    fakeDB = FakeDB()
+        db = realGetDB()
+        def fakeCommit(*args, **kwargs):
+            nonlocal commit_call_count
+            commit_call_count = commit_call_count + 1
+            return db.commit(*args, **kwargs)
 
-    def getFakeDB():
-        return fakeDB
+        class FakeDB: # we can't just say db.commit = fakeCommit, because `commit` is read-only -_-
+            def __getattribute__(self, name):
+                if name == "commit":
+                    return fakeCommit
+                else:
+                    return db.__getattribute__(name)
+        fakeGetDB.ans = FakeDB()
+        return fakeGetDB.ans
 
-    monkeypatch.setattr('LifeLogServer.database.get_db', getFakeDB)
 
-    @LifeLogServer.database.get_autocommit_db()
-    def fun1(arg1, arg2, /, arg3, arg4, *, db, arg5=5, arg6, code):
-        assert arg1 == 1
-        assert arg2 == 2
-        assert arg3 == 3
-        assert arg4 == 4
-        assert arg5 == 5
-        assert arg6 == 6
-        assert db is fakeDB
-        assert not db.committed
-        return ("yolo", code)
+    monkeypatch.setattr('LifeLogServer.database.get_db', fakeGetDB)
+    caught = False
+    try:
+        response = method(url, headers=headers)
+        assert response.status_code == HTTPStatus.OK
+    except expected_exception:
+        caught = True
+    if expected_exception is not None and not caught:
+        raise Exception("Did not receive the expected exception")
+    monkeypatch.setattr('LifeLogServer.database.get_db', realGetDB)
 
-    fun1(1, 2, 3, arg5=5, arg6=6, arg4=4, code=HTTPStatus.OK)
-    assert fakeDB.committed
-    fakeDB.committed = False
-    fun1(1, 2, 3, arg5=5, arg6=6, arg4=4, code=HTTPStatus.BAD_REQUEST) # arbitrary code != OK
-    assert not fakeDB.committed
+
+    assert commit_call_count == expected_cc
+
+    del fakeGetDB.ans
