@@ -33,6 +33,7 @@
 
 from LifeLogServer import create_app
 
+import pkg_resources
 
 def test_config():
     assert not create_app().testing
@@ -45,4 +46,4 @@ def test_ping(client):
 
 def test_apiv(client):
     response = client.get('/api_version')
-    assert response.data == b'0.4.0a0'
+    assert response.data == bytes(pkg_resources.require("LifeLogServer")[0].version, encoding=response.charset)
