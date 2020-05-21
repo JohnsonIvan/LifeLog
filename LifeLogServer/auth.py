@@ -18,17 +18,12 @@ def requireAuth(func=None, /, **factoryKwargs):
             return (f'You must use the \"{AUTH_HEADER}\" header to authenticate', HTTPStatus.UNAUTHORIZED)
 
         givenDB = 'db' in kwargs
-        if givenDB:
-            db = kwargs['db']
-        else:
-            db = database.get_db()
+
+        db = database.get_db()
 
         rows = db.execute('SELECT * FROM auth_token WHERE token = ?', (givenToken,)).fetchone()
         if rows is None or len(rows) == 0:
             return ("The provided auth token does not have access to this resource", HTTPStatus.FORBIDDEN)
-
-        if not givenDB:
-            db.commit()
 
         return func(*args, **kwargs)
     return wrapper

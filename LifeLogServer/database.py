@@ -70,16 +70,12 @@ def init_db():
     with f.current_app.open_resource("schema.sql") as file:
         db.executescript(file.read().decode("utf8"))
 
-def get_autocommit_db(func=None, /): #TODO: Positional-only parameters indicator '/' after func
+def get_autocommit_db(func=None, /):
     AUTH_HEADER="token"
     if not func:
         return functools.partial(get_autocommit_db)
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        db = get_db()
-
-        kwargs['db'] = db
-
         response = func(*args, **kwargs)
 
         status_code = None
@@ -91,6 +87,7 @@ def get_autocommit_db(func=None, /): #TODO: Positional-only parameters indicator
             assert False, "Unrecognized response from function decorated by get_autocommit_db"
 
         if status_code == HTTPStatus.OK:
+            db = get_db()
             db.commit()
 
         return response
