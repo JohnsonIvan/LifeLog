@@ -57,7 +57,6 @@ def get():
 
     rows = db.execute('SELECT * FROM weight WHERE ? <= datetime AND datetime < ? ORDER BY datetime LIMIT ? OFFSET ?',
                (since, before, limit, offset)).fetchall()
-    db.commit()
 
     data = ""
     for row in rows:
