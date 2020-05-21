@@ -2,8 +2,11 @@ import flask as f
 import time
 
 from flask import request
+from http import HTTPStatus
+
 from . import database
 from . import auth
+from . import cache
 
 bp = f.Blueprint('weight', __name__)
 
@@ -12,6 +15,7 @@ sMAX_TIME_ERROR = 300
 
 @bp.route('/record', methods=['POST'])
 @database.get_autocommit_db
+@cache.cache
 @auth.requireAuth
 def record():
     dt = request.args.get('datetime', None, type=int)

@@ -11,3 +11,11 @@ CREATE TABLE auth_token (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   token TEXT UNIQUE
 );
+
+
+DROP TABLE IF EXISTS cache;
+CREATE TABLE cache (
+  uuid TEXT PRIMARY KEY,
+  request_time INTEGER,
+  response BLOB
+)
