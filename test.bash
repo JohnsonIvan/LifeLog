@@ -13,12 +13,19 @@ if [ -z "${VIRTUAL_ENV+x}" ]; then
 fi
 
 if [ "${1:-}" == "--coverage" ]; then
-	echo RUNNING WITH COVERAGE
+	echo running all tests with coverage
 	coverage run -m pytest
 	coverage report
 	coverage html -d "$DIR_COVERAGE"
 	echo "Tests complete. Detailed coverage results are located in \"$DIR_COVERAGE/$FILE_COVERAGE\""
+elif [ "${1:-}" == "--unit" ]; then
+	echo "Running unit tests"
+	pytest -m unit
+elif [ "${1:-}" == "--integration" ]; then
+	echo "Running integration tests"
+	pytest -m integration
 else
-	echo RUNNING WITHOUT COVERAGE
-	pytest
+	"$0" --unit || (echo Failed to pass all unit tests; exit 1)
+	"$0" --integration || (echo Failed to pass all integration tests; exit 1)
+	echo "Passed all tests"
 fi
