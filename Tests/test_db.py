@@ -40,6 +40,7 @@ from http import HTTPStatus
 import LifeLogServer
 
 
+@pytest.mark.unit
 def test_get_close_db(app):
     with app.app_context():
         db = LifeLogServer.database.get_db()
@@ -50,6 +51,7 @@ def test_get_close_db(app):
 
     assert 'closed' in str(e.value)
 
+@pytest.mark.unit
 def test_init_db_command(runner, monkeypatch):
     class Recorder(object):
         called = False
