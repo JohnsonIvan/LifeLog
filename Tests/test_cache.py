@@ -41,5 +41,19 @@ def test_unauthenticated(app):
     headers[LifeLogServer.cache.CACHE_HEADER] = '10279e15-2fc9-4bff-b1a1-1b978fe7e7f8'
     _simple_test(app, headers)
 
-#TODO: TEST W/O CACHEID
+@pytest.mark.unit
+def test_noncaching(app):
+    headers = _default_headers.copy()
+    if LifeLogServer.cache.CACHE_HEADER in headers:
+        del headers[LifeLogServer.cache.CACHE_HEADER]
+
+    initial = _count
+    with app.test_request_context(headers=headers):
+        _foo()
+        assert _count == initial + 1
+        _foo()
+        assert _count == initial + 2
+        _foo()
+        assert _count == initial + 3
+
 #TODO: SHOW IT CACHES MORE THAN THE MOST RECENT QUERY
