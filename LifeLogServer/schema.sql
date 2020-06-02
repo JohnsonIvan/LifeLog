@@ -16,6 +16,7 @@ CREATE TABLE auth_token (
 DROP TABLE IF EXISTS cache;
 CREATE TABLE cache (
   uuid TEXT PRIMARY KEY,
+  token TEXT,
   request_time INTEGER,
   response BLOB
 )

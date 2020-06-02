@@ -5,8 +5,9 @@ from . import database
 
 from http import HTTPStatus
 
+AUTH_HEADER="token"
+
 def requireAuth(func=None, /, **factoryKwargs):
-    AUTH_HEADER="token"
     if not func:
         return functools.partial(requireAuth)
 
