@@ -11,7 +11,7 @@ from flask import request
 from . import database
 from . import auth
 
-#TODO: USE HEADERS INSTEAD OF QUERY STRING; LESS LIKELY TO BE SAVED BY BROWSER
+CACHE_HEADER = "cacheid"
 
 def cache(func=None, /, **factoryKwargs):
     if not func:
@@ -19,13 +19,13 @@ def cache(func=None, /, **factoryKwargs):
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        cacheid = request.args.get('cacheid', None, type=str)
+        cacheid = request.headers.get(CACHE_HEADER, None, type=str)
         if cacheid is None:
             return func(*args, **kwargs)
         try:
             uuid.UUID(cacheid)
         except ValueError:
-            return ('cacheid header could not be parsed as a UUID (RFC-4122)', HTTPStatus.BAD_REQUEST)
+            return (f'{CACHE_HEADER} header could not be parsed as a UUID (RFC-4122)', HTTPStatus.BAD_REQUEST)
 
 
         if auth.AUTH_HEADER in f.request.headers:

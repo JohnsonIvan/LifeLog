@@ -20,17 +20,17 @@ def test_cache(app, monkeypatch):
         count += 1
         return "foo"
 
-    args = {}
-    args['cacheid'] = 'b6a003f7-bf11-4e9c-825a-9e4c5241a740'
-    with app.test_request_context(query_string=args, headers=headers):
+    headers[LifeLogServer.cache.CACHE_HEADER] = 'b6a003f7-bf11-4e9c-825a-9e4c5241a740'
+    with app.test_request_context(headers=headers):
         foo()
         assert count == 1
         foo()
         foo()
         assert count == 1
 
-    args['cacheid'] = '10279e15-2fc9-4bff-b1a1-1b978fe7e7f8'
-    with app.test_request_context(query_string=args, headers=None):
+    del headers[LifeLogServer.auth.AUTH_HEADER]
+    headers[LifeLogServer.cache.CACHE_HEADER] = '10279e15-2fc9-4bff-b1a1-1b978fe7e7f8'
+    with app.test_request_context(headers=headers):
         foo()
         assert count == 2
         foo()
