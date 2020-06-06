@@ -8,7 +8,6 @@ CREATE TABLE weight (
 
 DROP TABLE IF EXISTS auth_token;
 CREATE TABLE auth_token (
-  id INTEGER,
   token TEXT UNIQUE,
   PRIMARY KEY (id)
 );
