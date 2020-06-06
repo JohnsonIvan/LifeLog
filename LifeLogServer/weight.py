@@ -67,6 +67,6 @@ def get():
 
     data = ""
     for row in rows:
-        data += f"{row['datetime']}, {row['weight']}\n"
+        data += f"{row['id']}, {row['datetime']}, {row['weight']}\n"
 
     return f.Response(data, mimetype='text/csv')
