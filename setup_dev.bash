@@ -4,7 +4,7 @@ set -euo pipefail
 DIR="$(dirname "$0")"
 cd "$DIR"
 
-git config --local core.hooksPath .GitHooks
+#git config --local core.hooksPath .GitHooks
 
 REQUIRED_PACKAGES="python python-pip sqlite"
 
