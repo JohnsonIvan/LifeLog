@@ -1,5 +1,6 @@
 import flask as f
 import time
+import uuid
 
 from flask import request
 from http import HTTPStatus
@@ -40,9 +41,11 @@ def record():
 
         return (msg, HTTPStatus.BAD_REQUEST)
 
+    uid = uuid.uuid4()
+
     db = database.get_db()
-    db.execute('INSERT INTO weight (datetime, weight) VALUES (?, ?)',
-               (dt, weight))
+    db.execute('INSERT INTO weight (id, datetime, weight) VALUES (?, ?, ?)',
+               (str(uid), dt, weight))
 
     return "success", HTTPStatus.OK
 

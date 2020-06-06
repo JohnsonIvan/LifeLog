@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS weight;
 CREATE TABLE weight (
-  id INTEGER AUTOINCREMENT,
+  id TEXT,
   datetime INTEGER,
   weight REAL,
   PRIMARY KEY (id)
