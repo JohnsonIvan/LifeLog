@@ -15,7 +15,7 @@ bp = f.Blueprint('weight', __name__)
 sMAX_TIME_ERROR = 300
 
 @bp.route('/record', methods=['POST'])
-@database.get_autocommit_db
+@database.autocommit_db
 @cache.cache
 @auth.requireAuth
 def record():
