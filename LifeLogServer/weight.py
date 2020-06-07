@@ -18,7 +18,7 @@ sMAX_TIME_ERROR = 300
 @database.autocommit_db
 @cache.cache
 @auth.requireAuth
-def record():
+def record(userid):
     dt = request.args.get('datetime', None, type=int)
     weight = request.args.get('weight', None, type=float)
 
@@ -44,14 +44,14 @@ def record():
     uid = uuid.uuid4()
 
     db = database.get_db()
-    db.execute('INSERT INTO weight (id, datetime, weight) VALUES (?, ?, ?)',
-               (str(uid), dt, weight))
+    db.execute('INSERT INTO weight (id, userid, datetime, weight) VALUES (?, ?, ?, ?)',
+               (str(uid), userid, dt, weight))
 
     return "success", HTTPStatus.OK
 
 @bp.route('/get')
 @auth.requireAuth()
-def get():
+def get(userid):
     since = request.args.get('since', None, type=int)
     before = request.args.get('before', None, type=int)
     limit = request.args.get('limit', None, type=int)
@@ -62,8 +62,8 @@ def get():
 
     db = database.get_db()
 
-    rows = db.execute('SELECT * FROM weight WHERE ? <= datetime AND datetime < ? ORDER BY datetime LIMIT ? OFFSET ?',
-               (since, before, limit, offset)).fetchall()
+    rows = db.execute('SELECT * FROM weight WHERE userid = ? AND ? <= datetime AND datetime < ? ORDER BY datetime LIMIT ? OFFSET ?',
+               (userid, since, before, limit, offset)).fetchall()
 
     data = ""
     for row in rows:

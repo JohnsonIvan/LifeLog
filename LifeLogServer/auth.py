@@ -7,7 +7,7 @@ from http import HTTPStatus
 
 AUTH_HEADER="token"
 
-def requireAuth(func=None, /, **factoryKwargs):
+def requireAuth(func=None, /, userid_keyword="userid"):
     if not func:
         return functools.partial(requireAuth)
 
@@ -22,9 +22,11 @@ def requireAuth(func=None, /, **factoryKwargs):
 
         db = database.get_db()
 
-        rows = db.execute('SELECT * FROM auth_token WHERE token = ?', (givenToken,)).fetchone()
+        rows = db.execute('SELECT userid FROM users WHERE token = ?', (givenToken,)).fetchone()
         if rows is None or len(rows) == 0:
             return ("The provided auth token does not have access to this resource", HTTPStatus.FORBIDDEN)
+
+        kwargs[userid_keyword] = rows['userid']
 
         return func(*args, **kwargs)
     return wrapper
