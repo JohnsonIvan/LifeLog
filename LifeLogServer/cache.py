@@ -15,7 +15,7 @@ CACHE_HEADER = "cacheid"
 
 def cache(func=None, /, **factoryKwargs):
     if not func:
-        return functools.partial(requireAuth)
+        return functools.partial(cache)
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
