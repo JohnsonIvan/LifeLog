@@ -19,6 +19,8 @@ sMAX_TIME_ERROR = 300
 @cache.cache
 @auth.requireAuth
 def record(userid):
+    """This is a docstring for record
+    """
     dt = request.args.get('datetime', None, type=int)
     weight = request.args.get('weight', None, type=float)
 
@@ -52,6 +54,8 @@ def record(userid):
 @bp.route('/get')
 @auth.requireAuth()
 def get(userid):
+    """This is a docstring for get
+    """
     since = request.args.get('since', None, type=int)
     before = request.args.get('before', None, type=int)
     limit = request.args.get('limit', None, type=int)
