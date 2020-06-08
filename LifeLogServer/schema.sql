@@ -1,4 +1,3 @@
-DROP TABLE IF EXISTS weight;
 CREATE TABLE weight (
   id TEXT,
   userid TEXT NOT NULL,
@@ -7,15 +6,12 @@ CREATE TABLE weight (
   PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS users;
 CREATE TABLE users (
   userid TEXT UNIQUE,
   token TEXT UNIQUE,
   PRIMARY KEY (userid, token)
 );
 
-
-DROP TABLE IF EXISTS cache;
 CREATE TABLE cache (
   uuid TEXT,
   token TEXT,
