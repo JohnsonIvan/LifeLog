@@ -39,7 +39,7 @@ def record(userid):
         if sErr > 995*now: # pragma: no cover
             msg += "\nMaybe the time parameter was provided in units of milliseconds instead of seconds?"
 
-        return (msg, HTTPStatus.BAD_REQUEST)
+        return (msg, HTTPStatus.UNPROCESSABLE_ENTITY)
 
     uid = uuid.uuid4()
 
@@ -47,7 +47,7 @@ def record(userid):
     db.execute('INSERT INTO weight (id, userid, datetime, weight) VALUES (?, ?, ?, ?)',
                (str(uid), userid, dt, weight))
 
-    return "success", HTTPStatus.OK
+    return "success", HTTPStatus.CREATED
 
 @bp.route('/get')
 @auth.requireAuth()
