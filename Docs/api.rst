@@ -1,32 +1,26 @@
-API
-===
+API Documentation
+=================
 
-Here is some normal text
+Summary
+-------
 
-Weight
-------
+Most requests require authentication; valid forms of authentication are
+described in :ref:`authentication`.
 
-Hello World
+.. qrefflask:: LifeLogServer:create_app()
+  :undoc-static:
 
-.. automodule:: LifeLogServer.weight
+
+.. _authentication:
+
+Authentication
+--------------
+
+.. automodule:: LifeLogServer.auth
    :members:
 
-Subsection
-^^^^^^^^^^
+API Details
+-----------
 
-**Bold** text
-
-Subsubsection
-"""""""""""""
-
-``Code sample``
-
-Time
-----
-
-Hello Folks
-
-Food
-----
-
-Hiya
+.. autoflask:: LifeLogServer:create_app()
+  :undoc-static:
