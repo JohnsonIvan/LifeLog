@@ -8,3 +8,4 @@ python:
    version: 3.8
    install:
       - requirements: requirements.txt
+      - requirements: Docs/requirements.txt
