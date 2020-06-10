@@ -31,7 +31,26 @@ def create_app(test_config=None):
 
     @app.route('/api_version')
     def getAPIVersion():
-        return flask.Response(f'{API_VERSION}', mimetype='text/plain')
+        """Returns the api version of the Life Log Server.
+
+        .. :quickref: ; Get the api version
+
+        **Example Request**
+
+        .. sourcecode:: bash
+
+            curl --request GET --url https://lifelog.ivanjohnson.net/api_version
+
+        **Example Response**
+
+        .. sourcecode:: http
+
+          HTTP/1.0 200 OK
+          Content-Type: text/plain; charset=utf-8
+
+          0.4.0a0
+        """
+        return flask.Response(f'{API_VERSION}\n', mimetype='text/plain')
 
     BASE_URL = '/api/v1'
 

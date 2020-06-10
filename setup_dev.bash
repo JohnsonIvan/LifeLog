@@ -19,6 +19,7 @@ python3 -m venv "$ENV_DIR"
 
 source "${ENV_DIR}/bin/activate"
 pip install -e '.[test]'
+pip install -r './Docs/requirements.txt'
 
 echo initializing database
 bash flask.bash reinit-dev && echo database initialization successful

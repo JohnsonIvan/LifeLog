@@ -19,6 +19,18 @@ sMAX_TIME_ERROR = 300
 @cache.cache
 @auth.requireAuth
 def record(userid):
+    """Add one new weight measurement.
+
+    .. :quickref: Weight; Log new weight measurement
+
+    Omitting any query string parameters results in undefined behavior.
+
+    :query datetime: Integer number of seconds since the Unix epoch, representing the time the measurement was made at
+    :query weight: The recorded weight in kilograms
+    :status 201: measurement created
+    :status 400: possibly returned when missing parameters
+    :status 422: possibly returned when provided date is in the future
+    """
     dt = request.args.get('datetime', None, type=int)
     weight = request.args.get('weight', None, type=float)
 
@@ -52,6 +64,19 @@ def record(userid):
 @bp.route('/get')
 @auth.requireAuth()
 def get(userid):
+    """Get weight measurements for a given time range.
+
+    .. :quickref: Weight; Get collection of weight measurements.
+
+    Results are sorted by date, from oldest to newest. Omitting any query parameter results in undefined behavior.
+
+    :query since: Integer number of seconds since the Unix epoch; return only measurements occuring on or after this time
+    :query before: Integer number of seconds since the Unix epoch; return only measurements occuring before this time
+    :query limit: Maximum number of results to return. Behavior is undefined when strictly greater than 100.
+    :query offset: Instead of returning the start of the sorted list of results, start from this offset.
+    :resheader Content-Type: application/csv
+    :returns: csv with one row for each measurement. In order, the columns are: unique id for the measurement, the time of the measurement, and the recorded weight in kilograms.
+    """
     since = request.args.get('since', None, type=int)
     before = request.args.get('before', None, type=int)
     limit = request.args.get('limit', None, type=int)
