@@ -139,14 +139,14 @@ def test_record_auth(client):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
     url = RECORD_URL + '?' + params
 
-    auth_tests.run_tests(client.post, url)
+    auth_tests.run_tests(client.post, url, expected_status=HTTPStatus.CREATED)
 
 @pytest.mark.integration
 def test_record_commits(client, monkeypatch):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
     url = RECORD_URL + '?' + params
 
-    test_db.count_commits(client.post, url, monkeypatch, expected_cc=1, headers=auth_tests.AUTH_HEADERS)
+    test_db.count_commits(client.post, url, monkeypatch, expected_cc=1, headers=auth_tests.AUTH_HEADERS, expected_status=HTTPStatus.CREATED)
 
     def fakeTime():
         raise Exception("asdf")
