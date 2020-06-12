@@ -86,7 +86,7 @@ def autocommit_db(func=None, /):
         else:
             raise Exception("Unrecognized response from function decorated by autocommit_db")
 
-        if status_code == HTTPStatus.OK:
+        if status_code < 400 or 600 <= status_code: #if not error
             db = get_db()
             db.commit()
 
