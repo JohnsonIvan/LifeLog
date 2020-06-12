@@ -102,19 +102,19 @@ def test_get_auth(client):
 def test_record_happy(client):
     params = urllib.parse.urlencode(GET_ALL_PARAMS)
     response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     results = response.data.decode(response.charset, "strict").rstrip().split('\n')
     assert len(results) == 5
 
 
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
     response = client.post(RECORD_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.CREATED
 
 
     params = urllib.parse.urlencode(GET_ALL_PARAMS)
     response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     data = parse_csv(response.data)
     assert len(data) == 6
     list_truths = list(map(lambda x: fuzzy_equals([None, "450", '0.1'], x), data))
