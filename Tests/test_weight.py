@@ -122,15 +122,17 @@ def test_record_happy(client):
 
 @pytest.mark.unit
 def test_record_invalid(client):
-    param_arr = [{'weight': 0.1, 'datetime': 2000000000},
-                 {'datetime': 0},
-                 {'weight': 0.1},
-                 {'weight': 'hello', 'datetime': 0},
-                 {'weight': 0.1, 'datetime': 'hello'}]
-    for params in param_arr:
+    data = [
+        (HTTPStatus.UNPROCESSABLE_ENTITY, {'weight': 0.1, 'datetime': 2000000000}),
+        (HTTPStatus.BAD_REQUEST,          {'datetime': 0}),
+        (HTTPStatus.BAD_REQUEST,          {'weight': 0.1}),
+        (HTTPStatus.BAD_REQUEST,          {'weight': 'hello', 'datetime': 0}),
+        (HTTPStatus.BAD_REQUEST,          {'weight': 0.1, 'datetime': 'hello'})
+    ]
+    for (expected_code, params) in data:
         params = urllib.parse.urlencode(params)
         response = client.post(RECORD_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
-        assert response.status_code == 400
+        assert response.status_code == expected_code
 
 @pytest.mark.integration
 def test_record_auth(client):
