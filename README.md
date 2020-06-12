@@ -1,3 +1,9 @@
+Image test:
+
+![An image to test GitHub's markdown syntax](sample-img.png)
+
+![A test of including text with GitHub's markdown](sample-text.txt)
+
 # LifeLog
 
 LifeLog is a DIY system for tracking metrics about your life, such as how much
