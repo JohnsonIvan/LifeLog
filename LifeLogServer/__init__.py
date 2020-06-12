@@ -50,7 +50,7 @@ def create_app(test_config=None):
 
           0.4.0a0
         """
-        return flask.Response(f'{API_VERSION}\n', mimetype='text/plain')
+        return flask.Response(f'{API_VERSION}', mimetype='text/plain')
 
     BASE_URL = '/api/v1'
 
