@@ -3,7 +3,9 @@ set -euo pipefail
 #set -x
 DIR="$(dirname "$0")"
 cd "$DIR"
-this="./$(basename "$0")"
+this="$(pwd)/$(basename "$0")"
+GIT="$(git rev-parse --show-toplevel)"
+cd "$GIT"
 
 export FLASK_APP=./
 export FLASK_ENV=development
