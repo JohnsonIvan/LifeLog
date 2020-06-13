@@ -7,7 +7,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'flask',
+        'flask', 'waitress>=1.4.4'
     ],
     extras_require={"test": ["pytest", "coverage"]},
 )

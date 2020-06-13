@@ -1,0 +1,10 @@
+[Unit]
+Description=launching LifeLogServer
+
+[Service]
+ExecStart=/srv/LifeLog/Code/launch.bash
+User=lifelogserver
+Group=lifelogserver
+
+[Install]
+WantedBy=multi-user.target
