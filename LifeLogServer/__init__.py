@@ -7,6 +7,8 @@ from LifeLogServer import weight
 
 API_VERSION = pkg_resources.require("LifeLogServer")[0].version
 
+DEFAULT_SECRET_KEY='dev'
+
 def create_app(test_config=None):
     # create and configure the app
     app = flask.Flask(__name__, instance_relative_config=True)
@@ -14,7 +16,7 @@ def create_app(test_config=None):
     # Set config defaults
     #TODO: tutorial says I can have a proper secret key located in ${instance}/config.py? Once that's done, delete the SECRET_KEY line.
     app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY=DEFAULT_SECRET_KEY,
         DATABASE=os.path.join(app.instance_path, 'lifelog.sqlite'),
     )
 
@@ -23,6 +25,8 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
     else:
         app.config.from_pyfile('config.py', silent=True)
+    if app.config['SECRET_KEY'] == DEFAULT_SECRET_KEY:
+        print("WARNING: USING DEFAULT KEY")
 
     try:
         os.makedirs(app.instance_path)
