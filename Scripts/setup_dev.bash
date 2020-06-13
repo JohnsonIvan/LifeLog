@@ -3,6 +3,11 @@ set -euo pipefail
 #set -x
 DIR="$(dirname "$0")"
 cd "$DIR"
+cd $(git rev-parse --show-toplevel)
+
+SCRIPTS_DIR="$(pwd)/Scripts"
+
+#git config --local core.hooksPath .GitHooks
 
 REQUIRED_PACKAGES="python python-pip sqlite"
 
@@ -17,9 +22,10 @@ python3 -m venv "$ENV_DIR"
 
 source "${ENV_DIR}/bin/activate"
 pip install -e '.[test]'
+pip install -r './Docs/requirements.txt'
 
 echo initializing database
-bash flask.bash reinit-dev && echo database initialization successful
+bash "$SCRIPTS_DIR/flask.bash" reinit-dev && echo database initialization successful
 
 echo running tests now
-bash test.bash --coverage
+bash "$SCRIPTS_DIR/test.bash" --coverage

@@ -33,16 +33,22 @@
 
 from LifeLogServer import create_app
 
+import pkg_resources
+import pytest
 
+
+@pytest.mark.unit
 def test_config():
     assert not create_app().testing
     assert create_app({'TESTING': True}).testing
 
 
+@pytest.mark.unit
 def test_ping(client):
     response = client.get('/api/v1/ping')
     assert response.data == b'pong\n'
 
+@pytest.mark.unit
 def test_apiv(client):
     response = client.get('/api_version')
-    assert response.data == b'0.4.0a0'
+    assert response.data == bytes(pkg_resources.require("LifeLogServer")[0].version, encoding=response.charset)

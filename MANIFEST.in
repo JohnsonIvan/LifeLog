@@ -1,2 +1,2 @@
-
+include LifeLogServer/schema.sql
 global-exclude *.pyc

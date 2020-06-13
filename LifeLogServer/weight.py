@@ -1,5 +1,6 @@
 import flask as f
 import time
+import uuid
 
 from flask import request
 from http import HTTPStatus
@@ -14,10 +15,22 @@ bp = f.Blueprint('weight', __name__)
 sMAX_TIME_ERROR = 300
 
 @bp.route('/record', methods=['POST'])
-@database.get_autocommit_db
+@database.autocommit_db
 @cache.cache
 @auth.requireAuth
-def record():
+def record(userid):
+    """Add one new weight measurement.
+
+    .. :quickref: Weight; Log new weight measurement
+
+    Omitting any query string parameters results in undefined behavior.
+
+    :query datetime: Integer number of seconds since the Unix epoch, representing the time the measurement was made at
+    :query weight: The recorded weight in kilograms
+    :status 201: measurement created
+    :status 400: possibly returned when missing parameters
+    :status 422: possibly returned when provided date is in the future
+    """
     dt = request.args.get('datetime', None, type=int)
     weight = request.args.get('weight', None, type=float)
 
@@ -38,17 +51,32 @@ def record():
         if sErr > 995*now: # pragma: no cover
             msg += "\nMaybe the time parameter was provided in units of milliseconds instead of seconds?"
 
-        return (msg, HTTPStatus.BAD_REQUEST)
+        return (msg, HTTPStatus.UNPROCESSABLE_ENTITY)
+
+    uid = uuid.uuid4()
 
     db = database.get_db()
-    db.execute('INSERT INTO weight (datetime, weight) VALUES (?, ?)',
-               (dt, weight))
+    db.execute('INSERT INTO weight (id, userid, datetime, weight) VALUES (?, ?, ?, ?)',
+               (str(uid), userid, dt, weight))
 
-    return "success", HTTPStatus.OK
+    return "success", HTTPStatus.CREATED
 
 @bp.route('/get')
 @auth.requireAuth()
-def get():
+def get(userid):
+    """Get weight measurements for a given time range.
+
+    .. :quickref: Weight; Get collection of weight measurements.
+
+    Results are sorted by date, from oldest to newest. Omitting any query parameter results in undefined behavior.
+
+    :query since: Integer number of seconds since the Unix epoch; return only measurements occuring on or after this time
+    :query before: Integer number of seconds since the Unix epoch; return only measurements occuring before this time
+    :query limit: Maximum number of results to return. Behavior is undefined when strictly greater than 100.
+    :query offset: Instead of returning the start of the sorted list of results, start from this offset.
+    :resheader Content-Type: application/csv
+    :returns: csv with one row for each measurement. In order, the columns are: unique id for the measurement, the time of the measurement, and the recorded weight in kilograms.
+    """
     since = request.args.get('since', None, type=int)
     before = request.args.get('before', None, type=int)
     limit = request.args.get('limit', None, type=int)
@@ -59,11 +87,11 @@ def get():
 
     db = database.get_db()
 
-    rows = db.execute('SELECT * FROM weight WHERE ? <= datetime AND datetime < ? ORDER BY datetime LIMIT ? OFFSET ?',
-               (since, before, limit, offset)).fetchall()
+    rows = db.execute('SELECT * FROM weight WHERE userid = ? AND ? <= datetime AND datetime < ? ORDER BY datetime LIMIT ? OFFSET ?',
+               (userid, since, before, limit, offset)).fetchall()
 
     data = ""
     for row in rows:
-        data += f"{row['datetime']}, {row['weight']}\n"
+        data += f"{row['id']}, {row['datetime']}, {row['weight']}\n"
 
     return f.Response(data, mimetype='text/csv')

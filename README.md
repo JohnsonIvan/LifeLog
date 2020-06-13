@@ -19,6 +19,11 @@ At present, Arch Linux is the only supported platform for running the server.
   [milestones](https://github.com/Ivan-Johnson/LifeLogServer/milestones) to plan
   future development
 
+# Documentation
+
+Documentation can be found online:
+https://life-log-server.readthedocs.io/en/master/
+
 # Setup
 
 Before starting development for LifeLogServer, there are a few things you have

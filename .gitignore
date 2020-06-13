@@ -1,9 +1,8 @@
-/brain.txt
 /instance
-/lifelogserver.egg-info
 /.coverage
 /.htmlcov/
 /.venv
 
 .#*
 __pycache__/
+/Docs/Build/

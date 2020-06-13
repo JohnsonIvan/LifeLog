@@ -40,6 +40,7 @@ from http import HTTPStatus
 import LifeLogServer
 
 
+@pytest.mark.unit
 def test_get_close_db(app):
     with app.app_context():
         db = LifeLogServer.database.get_db()
@@ -50,6 +51,7 @@ def test_get_close_db(app):
 
     assert 'closed' in str(e.value)
 
+@pytest.mark.unit
 def test_init_db_command(runner, monkeypatch):
     class Recorder(object):
         called = False
@@ -62,7 +64,7 @@ def test_init_db_command(runner, monkeypatch):
     assert 'Initialized' in result.output
     assert Recorder.called
 
-def count_commits(method, url, monkeypatch, expected_cc, headers={}, expected_exception=None):
+def count_commits(method, url, monkeypatch, expected_cc, headers={}, expected_exception=None, expected_status=HTTPStatus.OK):
     realGetDB = LifeLogServer.database.get_db
     commit_call_count = 0
     getdb_call_count = 0
@@ -94,7 +96,7 @@ def count_commits(method, url, monkeypatch, expected_cc, headers={}, expected_ex
     caught = False
     try:
         response = method(url, headers=headers)
-        assert response.status_code == HTTPStatus.OK
+        assert response.status_code == expected_status
     except expected_exception:
         caught = True
     if expected_exception is not None and not caught:
