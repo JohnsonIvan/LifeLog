@@ -38,6 +38,17 @@ def test_authenticated(app):
     _simple_test(app, headers)
 
 @pytest.mark.unit
+def test_bad_cacheid(app):
+    headers = _default_headers.copy()
+
+    headers[LifeLogServer.cache.CACHE_HEADER] = __uuid_1+'a'
+
+    with app.test_request_context(headers=headers):
+        ret = _foo()
+        status_code = flask.make_response(ret).status_code
+        assert(status_code == HTTPStatus.BAD_REQUEST)
+
+@pytest.mark.unit
 def test_unauthenticated(app):
     headers = _default_headers.copy()
     del headers[LifeLogServer.auth.AUTH_HEADER]
