@@ -153,3 +153,83 @@ def test_record_commits(client, monkeypatch):
 
     monkeypatch.setattr('time.time', fakeTime)
     test_db.count_commits(client.post, url, monkeypatch, expected_cc=0, headers=auth_tests.AUTH_HEADERS, expected_exception=Exception)
+
+@pytest.mark.unit
+def test_entry_delete_happy(app, client):
+    entry_id='148064f1-48bc-415d-9ff8-8a57d7ad8687'
+
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 1)
+
+        response = client.delete(ENTRY_URL + f'/{entry_id}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.NO_CONTENT
+
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 0)
+
+
+@pytest.mark.unit
+def test_entry_delete_badid(app, client):
+    entry_id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 0)
+
+        response = client.delete(ENTRY_URL + f'/{entry_id}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+@pytest.mark.unit
+@pytest.mark.parametrize("entry_id,params", [
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'datetime':1592435016, 'weight':123.45}),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {                       'weight':123.45}),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'datetime':1592435016,                }),
+])
+def test_entry_update_happy(app, client, entry_id, params):
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 1)
+
+        db = LifeLogServer.database.get_db()
+        sParams = urllib.parse.urlencode(params)
+        response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.NO_CONTENT
+
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 1)
+        row = results[0]
+
+        for key in params.keys():
+            assert(params[key] == row[key])
+
+@pytest.mark.unit
+def test_entry_update_no_params(app, client):
+    entry_id = '148064f1-48bc-415d-9ff8-8a57d7ad8687'
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 1)
+
+        db = LifeLogServer.database.get_db()
+        sParams = urllib.parse.urlencode({})
+        response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+@pytest.mark.unit
+def test_entry_update_nonexistant(app, client):
+    entry_id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 0)
+
+        db = LifeLogServer.database.get_db()
+        sParams = urllib.parse.urlencode({'datetime':1592435016, 'weight':123.45})
+        response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
