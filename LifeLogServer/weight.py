@@ -109,8 +109,8 @@ def entry_update(userid, entryid):
         assert(False)
 
 @bp.route('/entry/<uuid:entryid>', methods=['DELETE'])
-@database.autocommit_db
-@cache.cache
+@database.autocommit_db()
+@cache.cache()
 @auth.requireAuth()
 def entry_delete(userid, entryid):
     """Delete one weight entry.
