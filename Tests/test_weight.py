@@ -13,17 +13,17 @@ import csv
 import collections
 
 WEIGHT_URL='/api/v1/weight'
+ENTRY_URL=f'{WEIGHT_URL}/entry'
+BATCH_URL=f'{WEIGHT_URL}/batch'
 
-GET_URL=f'{WEIGHT_URL}/batch'
-GET_HAPPY_PARAMS={'since':150, 'before':450, 'limit':1, 'offset':1}
-GET_HAPPY_RESULTS=[[None, '300', '333.0']]
+BATCH_GET_HAPPY_PARAMS={'since':150, 'before':450, 'limit':1, 'offset':1}
+BATCH_GET_HAPPY_RESULTS=[[None, '300', '333.0']]
 
-GET_ALL_SINCE=0
-GET_ALL_BEFORE=1000
-GET_ALL_COUNT=5
-GET_ALL_PARAMS={'since':GET_ALL_SINCE, 'before':GET_ALL_BEFORE, 'limit':2*GET_ALL_COUNT+100, 'offset':0}
+BATCH_GET_ALL_SINCE=0
+BATCH_GET_ALL_BEFORE=1000
+BATCH_GET_ALL_COUNT=5
+BATCH_GET_ALL_PARAMS={'since':BATCH_GET_ALL_SINCE, 'before':BATCH_GET_ALL_BEFORE, 'limit':2*BATCH_GET_ALL_COUNT+100, 'offset':0}
 
-RECORD_URL=f'{WEIGHT_URL}/entry'
 
 def parse_csv(input, /):
     if type(input) == str:
@@ -72,48 +72,48 @@ def fuzzy_equals(arg1, arg2, /, arg1_ignores_nones=True, arg2_ignores_nones=Fals
 
 @pytest.mark.unit
 def test_get_happy(client):
-    params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
-    response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+    params = urllib.parse.urlencode(BATCH_GET_HAPPY_PARAMS)
+    response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
     assert response.charset == 'utf-8'
     assert response.mimetype == 'text/csv'
-    assert fuzzy_equals(GET_HAPPY_RESULTS, parse_csv(response.data))
+    assert fuzzy_equals(BATCH_GET_HAPPY_RESULTS, parse_csv(response.data))
 
 @pytest.mark.unit
 def test_get_missingParam(client):
     for key in ['since', 'before', 'limit', 'offset']:
-        params = GET_HAPPY_PARAMS.copy()
+        params = BATCH_GET_HAPPY_PARAMS.copy()
         params.pop(key, None)
         params = urllib.parse.urlencode(params)
-        url = GET_URL + '?' + params
+        url = BATCH_URL + '?' + params
         response = client.get(url, headers=auth_tests.AUTH_HEADERS)
         status = response.status_code
         assert status == HTTPStatus.BAD_REQUEST, f'key = "{key}"; url = "{url}"; status = {status}'
 
 @pytest.mark.integration
 def test_get_auth(client):
-    params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
-    url = GET_URL + '?' + params
+    params = urllib.parse.urlencode(BATCH_GET_HAPPY_PARAMS)
+    url = BATCH_URL + '?' + params
 
     auth_tests.run_tests(client.get, url)
 
 
 @pytest.mark.unit
 def test_record_happy(client):
-    params = urllib.parse.urlencode(GET_ALL_PARAMS)
-    response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+    params = urllib.parse.urlencode(BATCH_GET_ALL_PARAMS)
+    response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
     results = response.data.decode(response.charset, "strict").rstrip().split('\n')
     assert len(results) == 5
 
 
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
-    response = client.post(RECORD_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+    response = client.post(ENTRY_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.CREATED
 
 
-    params = urllib.parse.urlencode(GET_ALL_PARAMS)
-    response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+    params = urllib.parse.urlencode(BATCH_GET_ALL_PARAMS)
+    response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
     data = parse_csv(response.data)
     assert len(data) == 6
@@ -131,20 +131,20 @@ def test_record_invalid(client):
     ]
     for (expected_code, params) in data:
         params = urllib.parse.urlencode(params)
-        response = client.post(RECORD_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+        response = client.post(ENTRY_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
         assert response.status_code == expected_code
 
 @pytest.mark.integration
 def test_record_auth(client):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
-    url = RECORD_URL + '?' + params
+    url = ENTRY_URL + '?' + params
 
     auth_tests.run_tests(client.post, url, expected_status=HTTPStatus.CREATED)
 
 @pytest.mark.integration
 def test_record_commits(client, monkeypatch):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
-    url = RECORD_URL + '?' + params
+    url = ENTRY_URL + '?' + params
 
     test_db.count_commits(client.post, url, monkeypatch, expected_cc=1, headers=auth_tests.AUTH_HEADERS, expected_status=HTTPStatus.CREATED)
 
