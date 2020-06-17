@@ -14,7 +14,7 @@ import collections
 
 WEIGHT_URL='/api/v1/weight'
 
-GET_URL=f'{WEIGHT_URL}/get'
+GET_URL=f'{WEIGHT_URL}/batch'
 GET_HAPPY_PARAMS={'since':150, 'before':450, 'limit':1, 'offset':1}
 GET_HAPPY_RESULTS=[[None, '300', '333.0']]
 
@@ -23,7 +23,7 @@ GET_ALL_BEFORE=1000
 GET_ALL_COUNT=5
 GET_ALL_PARAMS={'since':GET_ALL_SINCE, 'before':GET_ALL_BEFORE, 'limit':2*GET_ALL_COUNT+100, 'offset':0}
 
-RECORD_URL=f'{WEIGHT_URL}/record'
+RECORD_URL=f'{WEIGHT_URL}/entry'
 
 def parse_csv(input, /):
     if type(input) == str:
