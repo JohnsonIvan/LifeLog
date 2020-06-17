@@ -66,7 +66,7 @@ def entry_add(userid):
     db.execute('INSERT INTO weight (id, userid, datetime, weight) VALUES (?, ?, ?, ?)',
                (str(uid), userid, dt, weight))
 
-    return "success", HTTPStatus.CREATED
+    return f"{uid}", HTTPStatus.CREATED
 
 @bp.route('/batch', methods=['GET'])
 @auth.requireAuth()
