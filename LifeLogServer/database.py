@@ -76,21 +76,14 @@ def autocommit_db(func=None, /):
         return functools.partial(autocommit_db)
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        response = func(*args, **kwargs)
-
-        status_code = None
-        if isinstance(response, tuple):
-            (_, status_code) = response
-        elif isinstance(response, f.Response):
-            status_code = response.status_code
-        else:
-            raise Exception("Unrecognized response from function decorated by autocommit_db")
+        ret = func(*args, **kwargs)
+        status_code = f.make_response(ret).status_code
 
         if status_code < 400 or 600 <= status_code: #if not error
             db = get_db()
             db.commit()
 
-        return response
+        return ret
     return wrapper
 
 
