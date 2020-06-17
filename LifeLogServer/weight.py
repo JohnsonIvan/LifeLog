@@ -24,9 +24,9 @@ sMAX_TIME_ERROR = 300
 @cache.cache
 @auth.requireAuth
 def entry_add(userid):
-    """Add one new weight measurement.
+    """Add one new weight entry
 
-    .. :quickref: Weight; Log new weight measurement
+    .. :quickref: Weight; Log new weight entry
 
     Omitting any query string parameters results in undefined behavior.
 
@@ -66,7 +66,72 @@ def entry_add(userid):
     db.execute('INSERT INTO weight (id, userid, datetime, weight) VALUES (?, ?, ?, ?)',
                (str(uid), userid, dt, weight))
 
-    return "success", HTTPStatus.CREATED
+    return f"{uid}", HTTPStatus.CREATED
+
+@bp.route('/entry/<uuid:entryid>', methods=['PUT'])
+@database.autocommit_db
+@cache.cache
+@auth.requireAuth()
+def entry_update(userid, entryid):
+    """Update the given weight entry.
+
+    .. :quickref: Weight; Update the given weight entry.
+
+    :query datetime: new datetime (optional)
+    :query weight: new weight (optional)
+    :status 204: Success
+    :status 400: Neither query parameter is provided
+    :status 422: Given entryid does not exist
+    """
+    dt = request.args.get('datetime', None, type=int)
+    weight = request.args.get('weight', None, type=float)
+
+    if dt is None and weight is None:
+        return f'You must provide at least one of the two parameters "datetime" (an int) and "weight" (a float)', HTTPStatus.BAD_REQUEST
+
+    db = database.get_db()
+
+    if dt is None:
+        ret = db.execute('UPDATE weight SET             weight=? WHERE userid=? AND id=?',
+                                            (           weight,     str(userid), str(entryid)))
+    elif weight is None:
+        ret = db.execute('UPDATE weight SET datetime=?           WHERE userid=? AND id=?',
+                                            (dt,                    str(userid), str(entryid)))
+    else:
+        ret = db.execute('UPDATE weight SET datetime=?, weight=? WHERE userid=? AND id=?',
+                                            (dt,        weight,     str(userid), str(entryid)))
+
+    if ret.rowcount == 0:
+        return f"", HTTPStatus.UNPROCESSABLE_ENTITY
+    elif ret.rowcount == 1:
+        return f"", HTTPStatus.NO_CONTENT
+    else: # pragma: no cover
+        assert(False)
+
+@bp.route('/entry/<uuid:entryid>', methods=['DELETE'])
+@database.autocommit_db
+@cache.cache
+@auth.requireAuth()
+def entry_delete(userid, entryid):
+    """Delete one weight entry.
+
+    .. :quickref: Weight; Delete one weight entry.
+
+    :status 204: Success
+    :status 422: provided entryid does not exist
+    """
+    db = database.get_db()
+
+    ret = db.execute('DELETE FROM weight WHERE userid=?      AND id=?',
+                                               (str(userid),     str(entryid)))
+
+    if ret.rowcount == 0:
+        return f"", HTTPStatus.UNPROCESSABLE_ENTITY
+    elif ret.rowcount == 1:
+        return f"", HTTPStatus.NO_CONTENT
+    else: # pragma: no cover
+        assert(False)
+
 
 @bp.route('/batch', methods=['GET'])
 @auth.requireAuth()
