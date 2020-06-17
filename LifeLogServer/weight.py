@@ -14,16 +14,23 @@ bp = f.Blueprint('weight', __name__)
 #maximum acceptable offset between our clock and the client's
 sMAX_TIME_ERROR = 300
 
-@bp.route('/record', methods=['POST'])
+#@bp.route('/entry/<uuid:id>', methods=['GET'])
+#@auth.requireAuth()
+#def entry_get(userid):
+#    #TODO
+
+@bp.route('/entry', methods=['POST'])
 @database.autocommit_db
 @cache.cache
 @auth.requireAuth
-def record(userid):
+def entry_add(userid):
     """Add one new weight measurement.
 
     .. :quickref: Weight; Log new weight measurement
 
     Omitting any query string parameters results in undefined behavior.
+
+    Requires authentication.
 
     :query datetime: Integer number of seconds since the Unix epoch, representing the time the measurement was made at
     :query weight: The recorded weight in kilograms
@@ -61,14 +68,16 @@ def record(userid):
 
     return "success", HTTPStatus.CREATED
 
-@bp.route('/get')
+@bp.route('/batch', methods=['GET'])
 @auth.requireAuth()
-def get(userid):
+def batch_get(userid):
     """Get weight measurements for a given time range.
 
     .. :quickref: Weight; Get collection of weight measurements.
 
     Results are sorted by date, from oldest to newest. Omitting any query parameter results in undefined behavior.
+
+    Requires authentication.
 
     :query since: Integer number of seconds since the Unix epoch; return only measurements occuring on or after this time
     :query before: Integer number of seconds since the Unix epoch; return only measurements occuring before this time
@@ -95,3 +104,8 @@ def get(userid):
         data += f"{row['id']}, {row['datetime']}, {row['weight']}\n"
 
     return f.Response(data, mimetype='text/csv')
+
+#@bp.route('/batch', methods=['POST'])
+#@auth.requireAuth()
+#def batch_add(userid):
+#    #TODO
