@@ -1,6 +1,12 @@
+import datetime
 import flask as f
+import io
+import matplotlib.dates as mpl_dates
+import matplotlib.pyplot as mpl_pyplot
 import time
 import uuid
+
+from matplotlib.backends.backend_agg import FigureCanvasAgg as mpl_FigureCanvas
 
 from flask import request
 from http import HTTPStatus
@@ -147,17 +153,35 @@ def batch_get(userid):
 
     Requires authentication (See :ref:`authentication`).
 
+    The "format" parameter controls how the data is returned. The possibilities are:
+
+    * "csv" (default): The data is returned as a csv text file with one row for
+      each measurement. In order, the columns are:
+
+      #. the id of the entry
+      #. the time of the measurement
+      #. the recorded weight in kilograms
+
+    * "scatter": The data is returned as an image of a scatter plot.
+
+      This defines additional query string parameters:
+
+      * time_format: the format string for dates (as defined by https://docs.python.org/3/library/datetime.html#datetime.datetime.strftime)
+
     :query since: Integer number of seconds since the Unix epoch; return only measurements occuring on or after this time
     :query before: Integer number of seconds since the Unix epoch; return only measurements occuring before this time
     :query limit: Maximum number of results to return. Behavior is undefined when strictly greater than 100.
     :query offset: Instead of returning the start of the sorted list of results, start from this offset.
-    :resheader Content-Type: application/csv
-    :returns: csv with one row for each measurement. In order, the columns are: unique id for the measurement, the time of the measurement, and the recorded weight in kilograms.
+    :query format: specifies how to represent the data
+    :status 400: A required parameter is missing or a parameter is invalid
+    :status 422: A required parameter is invalid
     """
     since = request.args.get('since', None, type=int)
     before = request.args.get('before', None, type=int)
     limit = request.args.get('limit', None, type=int)
     offset = request.args.get('offset', None, type=int)
+    ret_format = request.args.get('format', 'csv', type=str)
+    time_format = request.args.get('time_format', '%Y-%m-%d', type=str) # '%Y-%m-%dT%H:%M:%S' maybe with '%z' at the end for timezone (seems to work?)
 
     if before is None or since is None or limit is None or offset is None:
         return ("Query is missing missing at least one of the required int parameters: before, since, limit, offset", HTTPStatus.BAD_REQUEST)
@@ -167,11 +191,36 @@ def batch_get(userid):
     rows = db.execute('SELECT * FROM weight WHERE userid = ? AND ? <= datetime AND datetime < ? LIMIT ? OFFSET ?',
                (userid, since, before, limit, offset)).fetchall()
 
-    data = ""
-    for row in rows:
-        data += f"{row['id']}, {row['datetime']}, {row['weight']}\n"
+    if ret_format == 'csv':
+        data = ""
+        for row in rows:
+            data += f"{row['id']}, {row['datetime']}, {row['weight']}\n"
+        return f.Response(data, mimetype='text/csv')
+    elif ret_format == 'scatter':
+        times = []
+        weights = []
+        for row in rows:
+            time = datetime.datetime.fromtimestamp(row['datetime'])
+            times.append(time)
+            weights.append(row['weight'])
+        assert(len(times) == len(weights))
 
-    return f.Response(data, mimetype='text/csv')
+        fig, ax = mpl_pyplot.subplots(nrows=1, ncols=1)
+        ax.scatter(times, weights)
+
+        ax.xaxis.set_major_formatter(mpl_dates.DateFormatter(time_format))
+        ax.set_ylabel('Weight (kg)')
+        ax.set_xlabel('Datetime (local time)')
+        ax.set_ylim(bottom=0)
+
+        fig.autofmt_xdate()
+        fig.tight_layout()
+
+        output = io.BytesIO()
+        mpl_FigureCanvas(fig).print_png(output)
+        return f.Response(output.getvalue(), mimetype='image/png')
+    else:
+        return (f"The provided ret_format ({ret_format}) is invalid", HTTPStatus.UNPROCESSABLE_ENTITY)
 
 #@bp.route('/batch', methods=['POST'])
 #@auth.requireAuth()
