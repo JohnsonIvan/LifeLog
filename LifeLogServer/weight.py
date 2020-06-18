@@ -167,6 +167,7 @@ def batch_get(userid):
       This defines additional query string parameters:
 
       * time_format: the format string for dates (as defined by https://docs.python.org/3/library/datetime.html#datetime.datetime.strftime)
+      * marker_size: proportional to the area of the marker (see the "s" parameter of https://matplotlib.org/3.2.1/api/_as_gen/matplotlib.pyplot.scatter.html)
 
     :query since: Integer number of seconds since the Unix epoch; return only measurements occuring on or after this time
     :query before: Integer number of seconds since the Unix epoch; return only measurements occuring before this time
@@ -182,6 +183,7 @@ def batch_get(userid):
     offset = request.args.get('offset', None, type=int)
     ret_format = request.args.get('format', 'csv', type=str)
     time_format = request.args.get('time_format', '%Y-%m-%d', type=str) # '%Y-%m-%dT%H:%M:%S' maybe with '%z' at the end for timezone (seems to work?)
+    marker_size = requests.args.get('marker_size', None, type=int)
 
     if before is None or since is None or limit is None or offset is None:
         return ("Query is missing missing at least one of the required int parameters: before, since, limit, offset", HTTPStatus.BAD_REQUEST)
@@ -206,7 +208,7 @@ def batch_get(userid):
         assert(len(times) == len(weights))
 
         fig, ax = mpl_pyplot.subplots(nrows=1, ncols=1)
-        ax.scatter(times, weights)
+        ax.scatter(times, weights, s=marker_size)
 
         ax.xaxis.set_major_formatter(mpl_dates.DateFormatter(time_format))
         ax.set_ylabel('Weight (kg)')
