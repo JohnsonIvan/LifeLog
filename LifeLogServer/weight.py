@@ -183,7 +183,7 @@ def batch_get(userid):
     offset = request.args.get('offset', None, type=int)
     ret_format = request.args.get('format', 'csv', type=str)
     time_format = request.args.get('time_format', '%Y-%m-%d', type=str) # '%Y-%m-%dT%H:%M:%S' maybe with '%z' at the end for timezone (seems to work?)
-    marker_size = requests.args.get('marker_size', None, type=int)
+    marker_size = request.args.get('marker_size', None, type=int)
 
     if before is None or since is None or limit is None or offset is None:
         return ("Query is missing missing at least one of the required int parameters: before, since, limit, offset", HTTPStatus.BAD_REQUEST)
