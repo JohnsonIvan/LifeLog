@@ -160,7 +160,7 @@ def batch_get(userid):
     offset = request.args.get('offset', None, type=int)
 
     if before is None or since is None or limit is None or offset is None:
-        return ("Query is missing missing at least one of the required int parameters: before, since, limit, offset", 400)
+        return ("Query is missing missing at least one of the required int parameters: before, since, limit, offset", HTTPStatus.BAD_REQUEST)
 
     db = database.get_db()
 
