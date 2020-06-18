@@ -20,10 +20,10 @@ if [ "${1:-}" == "--coverage" ]; then
 	echo "Tests complete. Detailed coverage results are located in \"$DIR_COVERAGE/$FILE_COVERAGE\""
 elif [ "${1:-}" == "--unit" ]; then
 	echo "Running unit tests"
-	pytest -m unit
+	pytest --exitfirst -m unit
 elif [ "${1:-}" == "--integration" ]; then
 	echo "Running integration tests"
-	pytest -m integration
+	pytest --exitfirst -m integration
 else
 	"$0" --unit || (echo Failed to pass all unit tests; exit 1)
 	"$0" --integration || (echo Failed to pass all integration tests; exit 1)

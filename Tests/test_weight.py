@@ -13,17 +13,17 @@ import csv
 import collections
 
 WEIGHT_URL='/api/v1/weight'
+ENTRY_URL=f'{WEIGHT_URL}/entry'
+BATCH_URL=f'{WEIGHT_URL}/batch'
 
-GET_URL=f'{WEIGHT_URL}/get'
-GET_HAPPY_PARAMS={'since':150, 'before':450, 'limit':1, 'offset':1}
-GET_HAPPY_RESULTS=[[None, '300', '333.0']]
+BATCH_GET_HAPPY_PARAMS={'since':150, 'before':450, 'limit':1, 'offset':1}
+BATCH_GET_HAPPY_RESULTS=[[None, '300', '333.0']]
 
-GET_ALL_SINCE=0
-GET_ALL_BEFORE=1000
-GET_ALL_COUNT=5
-GET_ALL_PARAMS={'since':GET_ALL_SINCE, 'before':GET_ALL_BEFORE, 'limit':2*GET_ALL_COUNT+100, 'offset':0}
+BATCH_GET_ALL_SINCE=0
+BATCH_GET_ALL_BEFORE=1000
+BATCH_GET_ALL_COUNT=5
+BATCH_GET_ALL_PARAMS={'since':BATCH_GET_ALL_SINCE, 'before':BATCH_GET_ALL_BEFORE, 'limit':2*BATCH_GET_ALL_COUNT+100, 'offset':0}
 
-RECORD_URL=f'{WEIGHT_URL}/record'
 
 def parse_csv(input, /):
     if type(input) == str:
@@ -72,48 +72,48 @@ def fuzzy_equals(arg1, arg2, /, arg1_ignores_nones=True, arg2_ignores_nones=Fals
 
 @pytest.mark.unit
 def test_get_happy(client):
-    params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
-    response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+    params = urllib.parse.urlencode(BATCH_GET_HAPPY_PARAMS)
+    response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
     assert response.charset == 'utf-8'
     assert response.mimetype == 'text/csv'
-    assert fuzzy_equals(GET_HAPPY_RESULTS, parse_csv(response.data))
+    assert fuzzy_equals(BATCH_GET_HAPPY_RESULTS, parse_csv(response.data))
 
 @pytest.mark.unit
 def test_get_missingParam(client):
     for key in ['since', 'before', 'limit', 'offset']:
-        params = GET_HAPPY_PARAMS.copy()
+        params = BATCH_GET_HAPPY_PARAMS.copy()
         params.pop(key, None)
         params = urllib.parse.urlencode(params)
-        url = GET_URL + '?' + params
+        url = BATCH_URL + '?' + params
         response = client.get(url, headers=auth_tests.AUTH_HEADERS)
         status = response.status_code
         assert status == HTTPStatus.BAD_REQUEST, f'key = "{key}"; url = "{url}"; status = {status}'
 
 @pytest.mark.integration
 def test_get_auth(client):
-    params = urllib.parse.urlencode(GET_HAPPY_PARAMS)
-    url = GET_URL + '?' + params
+    params = urllib.parse.urlencode(BATCH_GET_HAPPY_PARAMS)
+    url = BATCH_URL + '?' + params
 
     auth_tests.run_tests(client.get, url)
 
 
 @pytest.mark.unit
 def test_record_happy(client):
-    params = urllib.parse.urlencode(GET_ALL_PARAMS)
-    response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+    params = urllib.parse.urlencode(BATCH_GET_ALL_PARAMS)
+    response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
     results = response.data.decode(response.charset, "strict").rstrip().split('\n')
     assert len(results) == 5
 
 
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
-    response = client.post(RECORD_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+    response = client.post(ENTRY_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.CREATED
 
 
-    params = urllib.parse.urlencode(GET_ALL_PARAMS)
-    response = client.get(GET_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+    params = urllib.parse.urlencode(BATCH_GET_ALL_PARAMS)
+    response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
     data = parse_csv(response.data)
     assert len(data) == 6
@@ -131,20 +131,20 @@ def test_record_invalid(client):
     ]
     for (expected_code, params) in data:
         params = urllib.parse.urlencode(params)
-        response = client.post(RECORD_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+        response = client.post(ENTRY_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
         assert response.status_code == expected_code
 
 @pytest.mark.integration
 def test_record_auth(client):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
-    url = RECORD_URL + '?' + params
+    url = ENTRY_URL + '?' + params
 
     auth_tests.run_tests(client.post, url, expected_status=HTTPStatus.CREATED)
 
 @pytest.mark.integration
 def test_record_commits(client, monkeypatch):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
-    url = RECORD_URL + '?' + params
+    url = ENTRY_URL + '?' + params
 
     test_db.count_commits(client.post, url, monkeypatch, expected_cc=1, headers=auth_tests.AUTH_HEADERS, expected_status=HTTPStatus.CREATED)
 
@@ -153,3 +153,83 @@ def test_record_commits(client, monkeypatch):
 
     monkeypatch.setattr('time.time', fakeTime)
     test_db.count_commits(client.post, url, monkeypatch, expected_cc=0, headers=auth_tests.AUTH_HEADERS, expected_exception=Exception)
+
+@pytest.mark.unit
+def test_entry_delete_happy(app, client):
+    entry_id='148064f1-48bc-415d-9ff8-8a57d7ad8687'
+
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 1)
+
+        response = client.delete(ENTRY_URL + f'/{entry_id}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.NO_CONTENT
+
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 0)
+
+
+@pytest.mark.unit
+def test_entry_delete_badid(app, client):
+    entry_id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 0)
+
+        response = client.delete(ENTRY_URL + f'/{entry_id}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+@pytest.mark.unit
+@pytest.mark.parametrize("entry_id,params", [
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'datetime':1592435016, 'weight':123.45}),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {                       'weight':123.45}),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'datetime':1592435016,                }),
+])
+def test_entry_update_happy(app, client, entry_id, params):
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 1)
+
+        db = LifeLogServer.database.get_db()
+        sParams = urllib.parse.urlencode(params)
+        response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.NO_CONTENT
+
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 1)
+        row = results[0]
+
+        for key in params.keys():
+            assert(params[key] == row[key])
+
+@pytest.mark.unit
+def test_entry_update_no_params(app, client):
+    entry_id = '148064f1-48bc-415d-9ff8-8a57d7ad8687'
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 1)
+
+        db = LifeLogServer.database.get_db()
+        sParams = urllib.parse.urlencode({})
+        response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+@pytest.mark.unit
+def test_entry_update_nonexistant(app, client):
+    entry_id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+    with app.app_context():
+        db = LifeLogServer.database.get_db()
+        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(results) == 0)
+
+        db = LifeLogServer.database.get_db()
+        sParams = urllib.parse.urlencode({'datetime':1592435016, 'weight':123.45})
+        response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY

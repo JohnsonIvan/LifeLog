@@ -33,10 +33,7 @@ PROD_DIR='/srv/LifeLog/Code/'
 sudo mkdir -p "$PROD_DIR"
 sudo chown "$USERNAME:$USERNAME" "$PROD_DIR"
 
-old="$PROD_DIR/$APP_NAME-"*
-if [ -f "$old" ]; then
-	sudo rm "$old"
-fi
+sudo rm -f "$PROD_DIR/$APP_NAME-"*
 
 sudo cp "dist/$APP_NAME-"* "$PROD_DIR"
 

@@ -25,7 +25,7 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
     else:
         app.config.from_pyfile('config.py', silent=True)
-    if app.config['SECRET_KEY'] == DEFAULT_SECRET_KEY:
+    if app.config['SECRET_KEY'] == DEFAULT_SECRET_KEY: # pragma: no cover
         print("WARNING: USING DEFAULT KEY")
 
     try:
