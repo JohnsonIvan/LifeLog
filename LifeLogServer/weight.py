@@ -30,7 +30,7 @@ def entry_add(userid):
 
     Omitting any query string parameters results in undefined behavior.
 
-    Requires authentication.
+    Requires authentication (See :ref:`authentication`).
 
     :query datetime: Integer number of seconds since the Unix epoch, representing the time the measurement was made at
     :query weight: The recorded weight in kilograms
@@ -77,6 +77,8 @@ def entry_update(userid, entryid):
 
     .. :quickref: Weight; Update the given weight entry.
 
+    Requires authentication (See :ref:`authentication`).
+
     :query datetime: new datetime (optional)
     :query weight: new weight (optional)
     :status 204: Success
@@ -117,6 +119,8 @@ def entry_delete(userid, entryid):
 
     .. :quickref: Weight; Delete one weight entry.
 
+    Requires authentication (See :ref:`authentication`).
+
     :status 204: Success
     :status 422: provided entryid does not exist
     """
@@ -132,7 +136,6 @@ def entry_delete(userid, entryid):
     else: # pragma: no cover
         assert(False)
 
-
 @bp.route('/batch', methods=['GET'])
 @auth.requireAuth()
 def batch_get(userid):
@@ -142,7 +145,7 @@ def batch_get(userid):
 
     Results are sorted by date, from oldest to newest. Omitting any query parameter results in undefined behavior.
 
-    Requires authentication.
+    Requires authentication (See :ref:`authentication`).
 
     :query since: Integer number of seconds since the Unix epoch; return only measurements occuring on or after this time
     :query before: Integer number of seconds since the Unix epoch; return only measurements occuring before this time
