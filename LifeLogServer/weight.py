@@ -143,7 +143,7 @@ def batch_get(userid):
 
     .. :quickref: Weight; Get collection of weight measurements.
 
-    Results are sorted by date, from oldest to newest. Omitting any query parameter results in undefined behavior.
+    Omitting any query parameter results in undefined behavior.
 
     Requires authentication (See :ref:`authentication`).
 
@@ -164,7 +164,7 @@ def batch_get(userid):
 
     db = database.get_db()
 
-    rows = db.execute('SELECT * FROM weight WHERE userid = ? AND ? <= datetime AND datetime < ? ORDER BY datetime LIMIT ? OFFSET ?',
+    rows = db.execute('SELECT * FROM weight WHERE userid = ? AND ? <= datetime AND datetime < ? LIMIT ? OFFSET ?',
                (userid, since, before, limit, offset)).fetchall()
 
     data = ""
