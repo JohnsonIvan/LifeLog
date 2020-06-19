@@ -9,6 +9,8 @@ SCRIPTS_DIR="$(pwd)/Scripts"
 
 #git config --local core.hooksPath .GitHooks
 
+git config --local core.hooksPath .GitHooks
+
 REQUIRED_PACKAGES="python python-pip sqlite"
 
 pacman -Qi $REQUIRED_PACKAGES > /dev/null || sudo pacman --needed -Syu $REQUIRED_PACKAGES

@@ -1,0 +1,19 @@
+#!/bin/env bash
+#exit on Error (even within a pipeline) and treat Unset variables as errors
+#set -euo pipefail
+#for tracing
+#set -x
+
+stash_name=$(git stash list | grep "NAMED_STASH_PRECOMMIT_HOOK" | cut -d: -f1)
+if [ "$stash_name" = "" ]; then
+	exit 0
+fi
+
+#get current branch if branch, otherwise get current commit hash
+cur_loc="$(git symbolic-ref -q --short HEAD || git rev-parse HEAD)"
+
+git checkout --quiet "$stash_name"~
+git stash pop --quiet "$stash_name"
+git checkout --quiet --detach # unnecessary?
+git reset --quiet "$cur_loc"
+git checkout "$cur_loc"

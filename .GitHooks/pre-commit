@@ -1,0 +1,21 @@
+#!/bin/env bash
+#exit on Error (even within a pipeline) and treat Unset variables as errors
+set -euo pipefail
+#for tracing
+#set -x
+
+git stash push -m "NAMED_STASH_PRECOMMIT_HOOK" --quiet --include-untracked --keep-index
+
+code=0
+
+echo "Testing... "
+VALID_TEST=$(./Scripts/test.bash > /dev/null; echo $?)
+if [ "$VALID_TEST" != "0" ]; then
+	code=1;
+	echo "TESTS FAILED!"
+	git stash pop --quiet
+else
+	echo "Tests passed"
+fi
+
+exit $code
