@@ -13,6 +13,10 @@ echo "Testing... "
 code=$?
 [ "$code" = "0" ] && echo "Tests passed" || echo "TESTS FAILED!"
 
+./Scripts/test.bash --coverage --fail > /dev/null
+code=$?
+[ "$code" = "0" ] && echo "Coverage passed" || echo "COVERAGE FAILED!"
+
 if [ $cStash_pre -ne $cStash_post ]; then
 	# The only reason this needs to be in an if check at all is to avoid errors on empty commits
 	git reset --quiet --hard

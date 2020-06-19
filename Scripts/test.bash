@@ -15,9 +15,18 @@ fi
 if [ "${1:-}" == "--coverage" ]; then
 	echo running all tests with coverage
 	coverage run -m pytest
-	coverage report
+	status=0
+	if [ "${2:-}" = "--fail" ]; then
+		set +e
+		coverage report --fail-under=100
+		status=$?
+		set -e
+	else
+		coverage report
+	fi
 	coverage html -d "$DIR_COVERAGE"
 	echo "Tests complete. Detailed coverage results are located in \"$DIR_COVERAGE/$FILE_COVERAGE\""
+	exit $status
 elif [ "${1:-}" == "--unit" ]; then
 	echo "Running unit tests"
 	pytest --exitfirst -m unit
