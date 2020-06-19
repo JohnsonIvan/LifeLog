@@ -71,8 +71,15 @@ def fuzzy_equals(arg1, arg2, /, arg1_ignores_nones=True, arg2_ignores_nones=Fals
         return arg1 == arg2
 
 @pytest.mark.unit
-def test_get_happy(client):
-    params = urllib.parse.urlencode(BATCH_GET_HAPPY_PARAMS)
+@pytest.mark.parametrize("ret_format", [
+    ("csv",),
+    (None,),
+])
+def test_get_happy(client, ret_format):
+    params = BATCH_GET_HAPPY_PARAMS.copy()
+    if ret_format is not None:
+        params['format'] = "csv"
+    params = urllib.parse.urlencode(params)
     response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
     assert response.charset == 'utf-8'
