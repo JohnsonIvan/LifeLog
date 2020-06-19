@@ -87,6 +87,14 @@ def test_get_happy(client, ret_format):
     assert fuzzy_equals(BATCH_GET_HAPPY_RESULTS, parse_csv(response.data))
 
 @pytest.mark.unit
+def test_batch_get_bad_format(client):
+    params = BATCH_GET_HAPPY_PARAMS.copy()
+    params['format'] = "iowueljhavnjkasdf"
+    params = urllib.parse.urlencode(params)
+    response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+@pytest.mark.unit
 def test_get_missingParam(client):
     for key in ['since', 'before', 'limit', 'offset']:
         params = BATCH_GET_HAPPY_PARAMS.copy()
