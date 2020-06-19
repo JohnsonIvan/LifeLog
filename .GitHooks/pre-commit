@@ -1,0 +1,22 @@
+#!/bin/env bash
+#exit on Error (even within a pipeline) and treat Unset variables as errors
+#set -euo pipefail
+#for tracing
+#set -x
+
+cStash_pre=$(git stash list | wc -l)
+git stash push -m "Precommit stash" --quiet --include-untracked --keep-index
+cStash_post=$(git stash list | wc -l)
+
+echo "Testing... "
+./Scripts/test.bash > /dev/null
+code=$?
+[ "$code" = "0" ] && echo "Tests passed" || echo "TESTS FAILED!"
+
+if [ $cStash_pre -ne $cStash_post ]; then
+	# The only reason this needs to be in an if check at all is to avoid errors on empty commits
+	git reset --quiet --hard
+	git stash pop --quiet --index
+fi
+
+exit $code
