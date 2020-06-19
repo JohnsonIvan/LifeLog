@@ -71,20 +71,23 @@ def fuzzy_equals(arg1, arg2, /, arg1_ignores_nones=True, arg2_ignores_nones=Fals
         return arg1 == arg2
 
 @pytest.mark.unit
-@pytest.mark.parametrize("ret_format", [
-    ("csv",),
-    (None,),
-])
+@pytest.mark.parametrize("ret_format", ["csv", "scatter", None,])
 def test_get_happy(client, ret_format):
+    print(f"ret_format: {ret_format}")
     params = BATCH_GET_HAPPY_PARAMS.copy()
     if ret_format is not None:
-        params['format'] = "csv"
+        params['format'] = ret_format
+    else:
+        ret_format = "csv"
     params = urllib.parse.urlencode(params)
     response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
     assert response.charset == 'utf-8'
-    assert response.mimetype == 'text/csv'
-    assert fuzzy_equals(BATCH_GET_HAPPY_RESULTS, parse_csv(response.data))
+    if ret_format == "csv":
+        assert response.mimetype == 'text/csv'
+        assert fuzzy_equals(BATCH_GET_HAPPY_RESULTS, parse_csv(response.data))
+    elif ret_format == "scatter":
+        assert response.mimetype == 'image/png'
 
 @pytest.mark.unit
 def test_batch_get_bad_format(client):
