@@ -69,12 +69,10 @@ def count_commits(method, url, monkeypatch, expected_cc, headers={}, expected_ex
     commit_call_count = 0
     getdb_call_count = 0
     def fakeGetDB():
+        nonlocal getdb_call_count
+        getdb_call_count = getdb_call_count+ 1
         if "ans" in fakeGetDB.__dict__:
             return fakeGetDB.ans
-        nonlocal getdb_call_count
-        if getdb_call_count != 0:
-            raise Exception()
-        getdb_call_count = getdb_call_count+ 1
 
         db = realGetDB()
         def fakeCommit(*args, **kwargs):
