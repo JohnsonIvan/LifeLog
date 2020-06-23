@@ -1,17 +1,8 @@
 from setuptools import find_packages, setup
-import os
-
-DIR_DATA='./'
-
-F_VERSION=DIR_DATA+os.path.sep+'version.txt'
-
-with open(F_VERSION, 'r') as f:
-    version=f.read()
-    version=version.strip()
 
 setup(
     name='lifelogserver',
-    version=version,
+    version='0.7.0a0.dev0',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
