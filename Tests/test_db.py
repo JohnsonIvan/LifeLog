@@ -64,19 +64,58 @@ def test_init_db_command(runner, monkeypatch):
     assert 'Initialized' in result.output
     assert Recorder.called
 
-def count_commits(method, url, monkeypatch, expected_cc, headers={}, expected_exception=None, expected_status=HTTPStatus.OK):
+@pytest.mark.unit
+@pytest.mark.parametrize("vOld,migration_vOld,expected_exception", [
+    ('0.0.0', '0.0.0', None),
+    ('0.0.1', '0.0.2', Exception),
+    ('1000!0.0.0', '0.0.3', Exception),
+])
+def test_migrations(app, vOld, migration_vOld, expected_exception):
+    vNew=LifeLogServer.API_VERSION
+
+    migration_call_count = 0
+
+    with app.app_context():
+        @LifeLogServer.database.migration(migration_vOld, vNew)
+        def tmp_migration(db):
+            nonlocal migration_call_count
+            migration_call_count += 1
+
+        conn = LifeLogServer.database.get_db(new_connection=True)
+        conn.execute('UPDATE database SET versionno=?', (vOld,))
+        conn.commit()
+
+        #trigger the migration
+        caught = False
+        try:
+            LifeLogServer.database.get_db()
+        except expected_exception:
+            caught = True
+        if expected_exception is not None:
+            if not caught:
+                raise Exception("Did not receive the expected exception")
+            return
+
+        assert(migration_call_count == 1)
+
+        db = LifeLogServer.database.get_db()
+        results = db.execute('SELECT * FROM database').fetchall()
+        assert(len(results) == 1)
+        result = results[0]
+        assert(result['versionno'] == vNew)
+
+
+def count_commits(app, method, url, monkeypatch, expected_cc, headers={}, expected_exception=None, expected_status=HTTPStatus.OK):
     realGetDB = LifeLogServer.database.get_db
     commit_call_count = 0
     getdb_call_count = 0
-    def fakeGetDB():
+    def fakeGetDB(new_connection=False):
+        nonlocal getdb_call_count
+        getdb_call_count = getdb_call_count+ 1
         if "ans" in fakeGetDB.__dict__:
             return fakeGetDB.ans
-        nonlocal getdb_call_count
-        if getdb_call_count != 0:
-            raise Exception()
-        getdb_call_count = getdb_call_count+ 1
 
-        db = realGetDB()
+        db = realGetDB(new_connection=new_connection)
         def fakeCommit(*args, **kwargs):
             nonlocal commit_call_count
             commit_call_count = commit_call_count + 1
@@ -91,6 +130,12 @@ def count_commits(method, url, monkeypatch, expected_cc, headers={}, expected_ex
         fakeGetDB.ans = FakeDB()
         return fakeGetDB.ans
 
+    with app.app_context():
+        # Counter resets are necessary because get_db itself now makes commits on
+        # the first get so that it can validate db versions
+        fakeGetDB(new_connection=True)
+    commit_call_count = 0
+    getdb_call_count = 0
 
     monkeypatch.setattr('LifeLogServer.database.get_db', fakeGetDB)
     caught = False

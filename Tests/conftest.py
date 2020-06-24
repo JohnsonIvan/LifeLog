@@ -53,7 +53,7 @@ def app():
 
     with app.app_context():
         LifeLogServer.database.init_db()
-        LifeLogServer.database.get_db().executescript(_data_sql)
+        LifeLogServer.database.get_db(new_connection=True).executescript(_data_sql)
 
     yield app
 
