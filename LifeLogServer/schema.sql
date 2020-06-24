@@ -1,3 +1,7 @@
+CREATE TABLE database (
+       versionno TEXT NOT NULL
+);
+
 CREATE TABLE weight (
   id TEXT,
   userid TEXT NOT NULL,

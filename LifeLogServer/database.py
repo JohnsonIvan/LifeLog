@@ -36,22 +36,31 @@ import sqlite3
 import click
 import flask as f
 import functools
+import LifeLogServer
+import packaging.version
 
 from http import HTTPStatus
 
-def get_db():
-    """Connect to the application's configured database. The connection
-    is unique for each request and will be reused if this is called
-    again.
+def get_db(new_connection=False):
+    """Connect to the application's configured database. With the default value
+    `new_connection==False` the connection is unique for each request and will
+    be reused if this is called again.
+
+    This might timeout with an exception if multiple simultaneous connections
+    are made. This is generally only a concern if `new_connection` is set to
+    true.
     """
-    if "db" not in f.g:
-        f.g.db = sqlite3.connect(
+    if new_connection:
+        db = sqlite3.connect(
             f.current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
         )
-        f.g.db.row_factory = sqlite3.Row
+        db.row_factory = sqlite3.Row
+        return db
+    if "db" not in f.g:
+        f.g.db = get_db(new_connection=True)
 
+        do_migrations()
     return f.g.db
-
 
 def close_db(e=None):
     """If this request connected to the database, close the
@@ -62,13 +71,21 @@ def close_db(e=None):
     if db is not None:
         db.close()
 
-
 def init_db():
     """Clear existing data and create new tables."""
+    with get_db(new_connection=True) as db:
+        with f.current_app.open_resource("schema.sql") as file:
+            db.executescript(file.read().decode("utf8"))
+            db.execute('INSERT INTO database (versionno) VALUES (?);', (LifeLogServer.API_VERSION,))
+
+def get_db_version():
     db = get_db()
 
-    with f.current_app.open_resource("schema.sql") as file:
-        db.executescript(file.read().decode("utf8"))
+    results = db.execute('SELECT * FROM database').fetchall()
+    assert(len(results) == 1)
+    result = results[0]
+
+    return result['versionno']
 
 def autocommit_db(func=None, /):
     AUTH_HEADER="token"
@@ -86,8 +103,6 @@ def autocommit_db(func=None, /):
         return ret
     return wrapper
 
-
-
 @click.command("init-db")
 @f.cli.with_appcontext
 def init_db_command():
@@ -95,6 +110,42 @@ def init_db_command():
     init_db()
     click.echo("Initialized the database.")
 
+__migrations = {}
+
+def __get_migration_name(vBefore, vAfter):
+    return f'{vBefore}_mpatxbxgtpamxpapg_{vAfter}'
+
+def migration(vBefore, vAfter):
+    def decorator(func, /):
+        name = __get_migration_name(vBefore, vAfter)
+        assert(name not in __migrations)
+        __migrations[name] = func
+        return func
+    return decorator
+
+# this import statement adds migrations to `__migrations` via the `migration` decorator
+from . import database_migrations
+
+def do_migrations():
+    db_version = packaging.version.parse(get_db_version())
+    cur_version = packaging.version.parse(LifeLogServer.API_VERSION)
+
+    if db_version > cur_version:
+        raise Exception(f"Database schema version is newer than the running code version ({db_version}, {cur_version})")
+    if db_version == cur_version:
+        return
+
+    assert(db_version < cur_version)
+    name = __get_migration_name(db_version, cur_version)
+    if name not in __migrations:
+        raise Exception(f"The code version ({cur_version}) is newer than the database version ({db_version}), and there is no known method for migrating the database directly.")
+    func = __migrations[name]
+    db = get_db()
+    func(db)
+    db.execute('UPDATE database SET versionno = ?', (str(cur_version),))
+
+    new_db_version = packaging.version.parse(get_db_version())
+    assert(new_db_version == cur_version)
 
 def init_app(app):
     """Register database functions with the Flask app. This is called by

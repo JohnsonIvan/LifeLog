@@ -160,17 +160,17 @@ def test_record_auth(client):
     auth_tests.run_tests(client.post, url, expected_status=HTTPStatus.CREATED)
 
 @pytest.mark.integration
-def test_record_commits(client, monkeypatch):
+def test_record_commits(app, client, monkeypatch):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
     url = ENTRY_URL + '?' + params
 
-    test_db.count_commits(client.post, url, monkeypatch, expected_cc=1, headers=auth_tests.AUTH_HEADERS, expected_status=HTTPStatus.CREATED)
+    test_db.count_commits(app, client.post, url, monkeypatch, expected_cc=1, headers=auth_tests.AUTH_HEADERS, expected_status=HTTPStatus.CREATED)
 
     def fakeTime():
         raise Exception("asdf")
 
     monkeypatch.setattr('time.time', fakeTime)
-    test_db.count_commits(client.post, url, monkeypatch, expected_cc=0, headers=auth_tests.AUTH_HEADERS, expected_exception=Exception)
+    test_db.count_commits(app, client.post, url, monkeypatch, expected_cc=0, headers=auth_tests.AUTH_HEADERS, expected_exception=Exception)
 
 @pytest.mark.unit
 def test_entry_delete_happy(app, client):
