@@ -125,7 +125,7 @@ def test_record_happy(client):
     assert len(results) == 5
 
 
-    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
+    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450, 'units':'kilograms'})
     response = client.post(ENTRY_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.CREATED
 
@@ -141,11 +141,12 @@ def test_record_happy(client):
 @pytest.mark.unit
 def test_record_invalid(client):
     data = [
-        (HTTPStatus.UNPROCESSABLE_ENTITY, {'weight': 0.1, 'datetime': 2000000000}),
-        (HTTPStatus.BAD_REQUEST,          {'datetime': 0}),
-        (HTTPStatus.BAD_REQUEST,          {'weight': 0.1}),
-        (HTTPStatus.BAD_REQUEST,          {'weight': 'hello', 'datetime': 0}),
-        (HTTPStatus.BAD_REQUEST,          {'weight': 0.1, 'datetime': 'hello'})
+        (HTTPStatus.UNPROCESSABLE_ENTITY, {'units':'kilograms', 'weight': 0.1, 'datetime': 2000000000}),
+        (HTTPStatus.BAD_REQUEST,          {'units':'kilograms', 'datetime': 0}),
+        (HTTPStatus.BAD_REQUEST,          {'units':'kilograms', 'weight': 0.1}),
+        (HTTPStatus.BAD_REQUEST,          {'units':'kilograms', 'weight': 'hello', 'datetime': 0}),
+        (HTTPStatus.BAD_REQUEST,          {'units':'kilograms', 'weight': 0.1, 'datetime': 'hello'}),
+        (HTTPStatus.BAD_REQUEST,          {                     'weight': 0.1, 'datetime': 0}),
     ]
     for (expected_code, params) in data:
         params = urllib.parse.urlencode(params)
@@ -154,14 +155,14 @@ def test_record_invalid(client):
 
 @pytest.mark.integration
 def test_record_auth(client):
-    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
+    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450, 'units': 'kilograms'})
     url = ENTRY_URL + '?' + params
 
     auth_tests.run_tests(client.post, url, expected_status=HTTPStatus.CREATED)
 
 @pytest.mark.integration
 def test_record_commits(app, client, monkeypatch):
-    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450})
+    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450, 'units': 'kilograms'})
     url = ENTRY_URL + '?' + params
 
     test_db.count_commits(app, client.post, url, monkeypatch, expected_cc=1, headers=auth_tests.AUTH_HEADERS, expected_status=HTTPStatus.CREATED)
@@ -204,15 +205,16 @@ def test_entry_delete_badid(app, client):
 
 @pytest.mark.unit
 @pytest.mark.parametrize("entry_id,params", [
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'datetime':1592435016, 'weight':123.45}),
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {                       'weight':123.45}),
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'datetime':1592435016,                }),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'units':'kilograms', 'datetime':1592435016, 'weight':123.45}),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'units':'kilograms',                        'weight':123.45}),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'units':'kilograms', 'datetime':1592435016,                }),
 ])
 def test_entry_update_happy(app, client, entry_id, params):
     with app.app_context():
         db = LifeLogServer.database.get_db()
-        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
-        assert(len(results) == 1)
+        initial_value = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+        assert(len(initial_value) == 1)
+        initial_value = initial_value[0]
 
         db = LifeLogServer.database.get_db()
         sParams = urllib.parse.urlencode(params)
@@ -223,8 +225,15 @@ def test_entry_update_happy(app, client, entry_id, params):
         assert(len(results) == 1)
         row = results[0]
 
-        for key in params.keys():
-            assert(params[key] == row[key])
+        if 'weight' in params.keys():
+            #TODO: when adding non-kg tests, mock kg_from_units to return random value for expected input and verify that it worked.
+            assert(row['weight_kg'] == params['weight'])
+        else:
+            assert(row['weight_kg'] == initial_value['weight_kg'])
+        if 'datetime' in params.keys():
+            assert(row['datetime'] == params['datetime'])
+        else:
+            assert(row['datetime'] == initial_value['datetime'])
 
 @pytest.mark.unit
 def test_entry_update_no_params(app, client):
@@ -248,6 +257,6 @@ def test_entry_update_nonexistant(app, client):
         assert(len(results) == 0)
 
         db = LifeLogServer.database.get_db()
-        sParams = urllib.parse.urlencode({'datetime':1592435016, 'weight':123.45})
+        sParams = urllib.parse.urlencode({'datetime':1592435016, 'weight':123.45, 'units':'kilograms'})
         response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY

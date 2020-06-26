@@ -15,6 +15,9 @@ from . import database
 from . import auth
 from . import cache
 
+__UNIT_DATA=[{"unit": "kilograms", "kg_per_unit": 1}, {"unit": "pounds", "kg_per_unit": 0.45359237}]
+__UNITS = list(map(lambda d: d['unit'], __UNIT_DATA))
+
 bp = f.Blueprint('weight', __name__)
 
 #maximum acceptable offset between our clock and the client's
@@ -24,6 +27,22 @@ sMAX_TIME_ERROR = 300
 #@auth.requireAuth()
 #def entry_get(userid):
 #    #TODO
+
+def kg_from_unsafe(value, units):
+    try:
+        value = float(value)
+    except:
+        return None
+    for dictionary in __UNIT_DATA:
+        if dictionary["unit"] == units:
+            return value * dictionary["kg_per_unit"]
+    return None
+
+def usafeunit_from_kg(kg, units):
+    for dictionary in __UNIT_DATA:
+        if dictionary["unit"] == units:
+            return kg / dictionary["kg_per_unit"]
+    return None
 
 @bp.route('/entry', methods=['POST'])
 @database.autocommit_db
@@ -40,37 +59,51 @@ def entry_add(userid):
 
     :query datetime: Integer number of seconds since the Unix epoch, representing the time the measurement was made at
     :query weight: The recorded weight in kilograms
+    :query units: Specifies the units of measure for the `weight` parameter
     :status 201: measurement created
     :status 400: possibly returned when missing parameters
     :status 422: possibly returned when provided date is in the future
     """
+
     dt = request.args.get('datetime', None, type=int)
     weight = request.args.get('weight', None, type=float)
+    units = request.args.get('units', None, type=str)
 
-    if dt is None or weight is None:
-        msg = ""
-        if dt is None and weight is None: # pragma: no cover
-            msg = "Query is missing both the datetime (int) and weight (float) parameters"
-        elif dt is None: # pragma: no cover
-            msg = "Query is missing the datetime (int) parameter"
-        elif weight is None: # pragma: no cover
-            msg = "Query is missing the weight (float) parameter"
+    num_missing_params=(dt is None) or (weight is None) or (units is None)
+    if num_missing_params > 0:
+        if num_missing_params == 1: # pragma: no cover
+            msg = "The following query string parameter is missing:\n"
+        else: # pragma: no cover
+            msg = "The following {num_missing_params} query string parameters are missing:\n"
+        if dt is None: # pragma: no cover
+            msg += "\tdatetime (int)\n"
+        if weight is None: # pragma: no cover
+            msg += "\tweight (float)\n"
+        if units is None: # pragma: no cover
+            msg += "\tunits (float)\n"
+
         return (msg, HTTPStatus.BAD_REQUEST)
+
+    weight_kg = kg_from_unsafe(weight, units)
+    if weight_kg is None:
+        msg = f'The provided measurement, "{weight} {units}", is not valid. The "weight" parameter must be a number and the "units" parameter must be one of {__UNITS}'
+        return (msg, HTTPStatus.BAD_REQUEST)
+
 
     now = time.time()
     if dt > now + sMAX_TIME_ERROR:
         sErr=dt - now
-        msg = f"Given time is in the future."
-        if sErr > 995*now: # pragma: no cover
-            msg += "\nMaybe the time parameter was provided in units of milliseconds instead of seconds?"
-
+        msg = f"The given time ({dt}) is in the future; the current time is {now}."
+        if sErr > (now - 60*60*24*365)*1e3: # pragma: no cover
+            msg += "\n\tMaybe the time parameter was provided in units of milliseconds instead of seconds?"
         return (msg, HTTPStatus.UNPROCESSABLE_ENTITY)
+
 
     uid = uuid.uuid4()
 
     db = database.get_db()
-    db.execute('INSERT INTO weight (id, userid, datetime, weight) VALUES (?, ?, ?, ?)',
-               (str(uid), userid, dt, weight))
+    db.execute('INSERT INTO weight (id, userid, datetime, weight_kg) VALUES (?, ?, ?, ?)',
+               (str(uid), userid, dt, weight_kg))
 
     return f"{uid}", HTTPStatus.CREATED
 
@@ -87,27 +120,36 @@ def entry_update(userid, entryid):
 
     :query datetime: new datetime (optional)
     :query weight: new weight (optional)
+    :query units: units for new weight (optional)
     :status 204: Success
-    :status 400: Neither query parameter is provided
-    :status 422: Given entryid does not exist
     """
     dt = request.args.get('datetime', None, type=int)
     weight = request.args.get('weight', None, type=float)
+    units = request.args.get('units', None, type=str)
 
     if dt is None and weight is None:
         return f'You must provide at least one of the two parameters "datetime" (an int) and "weight" (a float)', HTTPStatus.BAD_REQUEST
 
+    if (weight is not None) and (units is None):
+        return f'You must specify the units of the provided weight measurement using the "units" parameter', HTTPStatus.BAD_REQUEST
+
+    weight_kg = kg_from_unsafe(weight, units)
+
+    if (weight is not None) and (weight_kg is None):
+        assert(units not in __UNITS)
+        return f'The value of "units" must be one of {__UNITS}; the value you gave is {units}.', HTTPStatus.BAD_REQUEST
+
     db = database.get_db()
 
     if dt is None:
-        ret = db.execute('UPDATE weight SET             weight=? WHERE userid=? AND id=?',
-                                            (           weight,     str(userid), str(entryid)))
-    elif weight is None:
+        ret = db.execute('UPDATE weight SET             weight_kg=? WHERE userid=? AND id=?',
+                                            (           weight_kg,     str(userid), str(entryid)))
+    elif weight_kg is None:
         ret = db.execute('UPDATE weight SET datetime=?           WHERE userid=? AND id=?',
                                             (dt,                    str(userid), str(entryid)))
     else:
-        ret = db.execute('UPDATE weight SET datetime=?, weight=? WHERE userid=? AND id=?',
-                                            (dt,        weight,     str(userid), str(entryid)))
+        ret = db.execute('UPDATE weight SET datetime=?, weight_kg=? WHERE userid=? AND id=?',
+                                            (dt,        weight_kg,     str(userid), str(entryid)))
 
     if ret.rowcount == 0:
         return f"", HTTPStatus.UNPROCESSABLE_ENTITY
@@ -196,7 +238,7 @@ def batch_get(userid):
     if ret_format == 'csv':
         data = ""
         for row in rows:
-            data += f"{row['id']}, {row['datetime']}, {row['weight']}\n"
+            data += f"{row['id']}, {row['datetime']}, {row['weight_kg']}\n"
         return f.Response(data, mimetype='text/csv')
     elif ret_format == 'scatter':
         times = []
@@ -204,7 +246,7 @@ def batch_get(userid):
         for row in rows:
             time = datetime.datetime.fromtimestamp(row['datetime'])
             times.append(time)
-            weights.append(row['weight'])
+            weights.append(row['weight_kg'])
         assert(len(times) == len(weights))
 
         fig, ax = mpl_pyplot.subplots(nrows=1, ncols=1)
