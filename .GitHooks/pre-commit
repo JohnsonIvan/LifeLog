@@ -8,14 +8,33 @@ cStash_pre=$(git stash list | wc -l)
 git stash push -m "Precommit stash" --quiet --include-untracked --keep-index
 cStash_post=$(git stash list | wc -l)
 
-echo "Testing... "
+echo "Running tests..."
 ./Scripts/test.bash > /dev/null
 code=$?
-[ "$code" = "0" ] && echo "Tests passed" || echo "TESTS FAILED!"
+if [ "$code" = "0" ]; then
+	echo "Tests passed"
+else
+	echo "TESTS FAILED!"
+	echo 'Would you like to ignore this failure? (y/*)'
+	read -r response < /dev/tty
+	if [ "$response" = "y" ]; then
+		code=0
+	fi
+fi
 
+echo "Running coverage check..."
 ./Scripts/test.bash --coverage --fail > /dev/null
 code=$?
-[ "$code" = "0" ] && echo "Coverage passed" || echo "COVERAGE FAILED!"
+if [ "$code" = "0" ]; then
+	echo "Coverage passed"
+else
+	echo "COVERAGE FAILED!"
+	echo 'Would you like to ignore this failure? (y/*)'
+	read -r response < /dev/tty
+	if [ "$response" = "y" ]; then
+		code=0
+	fi
+fi
 
 if [ $cStash_pre -ne $cStash_post ]; then
 	# The only reason this needs to be in an if check at all is to avoid errors on empty commits
