@@ -148,7 +148,7 @@ def test_entry_add_happy(monkeypatch, client):
     assert(list_truths.count(True) == 1)
 
 @pytest.mark.unit
-@pytest.mark.parametrize("expected_code, params", [
+@pytest.mark.parametrize("expected_code, params_dict", [
     (HTTPStatus.UNPROCESSABLE_ENTITY, {'units':'kilograms', 'weight': 0.1, 'datetime': 2000000000}),
     (HTTPStatus.BAD_REQUEST,          {'units':'kilograms', 'datetime': 0}),
     (HTTPStatus.BAD_REQUEST,          {'units':'kilograms', 'weight': 0.1}),
@@ -156,8 +156,14 @@ def test_entry_add_happy(monkeypatch, client):
     (HTTPStatus.BAD_REQUEST,          {'units':'kilograms', 'weight': 0.1, 'datetime': 'hello'}),
     (HTTPStatus.BAD_REQUEST,          {                     'weight': 0.1, 'datetime': 0}),
 ])
-def test_entry_add_invalid(client, expected_code, params):
-    params = urllib.parse.urlencode(params)
+def test_entry_add_invalid(monkeypatch, client, expected_code, params_dict):
+    def mocked_conversion(tmp_value, tmp_units):
+        assert('weight' in params_dict and tmp_value == params_dict['weight'])
+        assert('units' in params_dict and tmp_units == params_dict['units'])
+        return tmp_value
+    monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
+
+    params = urllib.parse.urlencode(params_dict)
     response = client.post(ENTRY_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == expected_code
 
