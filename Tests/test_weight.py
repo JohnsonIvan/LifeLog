@@ -115,7 +115,7 @@ def test_get_auth(client):
     auth_tests.run_tests(client.get, url)
 
 @pytest.mark.unit
-def test_record_happy(monkeypatch, client):
+def test_entry_add_happy(monkeypatch, client):
     units="WKz2CVpF"
     value_units=0.89934
     value_kg=0.48191
@@ -148,7 +148,7 @@ def test_record_happy(monkeypatch, client):
     assert(list_truths.count(True) == 1)
 
 @pytest.mark.unit
-def test_record_invalid(client):
+def test_entry_add_invalid(client):
     data = [
         (HTTPStatus.UNPROCESSABLE_ENTITY, {'units':'kilograms', 'weight': 0.1, 'datetime': 2000000000}),
         (HTTPStatus.BAD_REQUEST,          {'units':'kilograms', 'datetime': 0}),
@@ -163,14 +163,14 @@ def test_record_invalid(client):
         assert response.status_code == expected_code
 
 @pytest.mark.integration
-def test_record_auth(client):
+def test_entry_add_auth(client):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450, 'units': 'kilograms'})
     url = ENTRY_URL + '?' + params
 
     auth_tests.run_tests(client.post, url, expected_status=HTTPStatus.CREATED)
 
 @pytest.mark.integration
-def test_record_commits(app, client, monkeypatch):
+def test_entry_add_autocommits(app, client, monkeypatch):
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450, 'units': 'kilograms'})
     url = ENTRY_URL + '?' + params
 
