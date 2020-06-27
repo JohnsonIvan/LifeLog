@@ -23,11 +23,6 @@ bp = f.Blueprint('weight', __name__)
 #maximum acceptable offset between our clock and the client's
 sMAX_TIME_ERROR = 300
 
-#@bp.route('/entry/<uuid:id>', methods=['GET'])
-#@auth.requireAuth()
-#def entry_get(userid):
-#    #TODO
-
 def kg_from_unsafe(value, units):
     try:
         value = float(value)
@@ -38,11 +33,11 @@ def kg_from_unsafe(value, units):
             return value * dictionary["kg_per_unit"]
     return None
 
-def usafeunit_from_kg(kg, units):
-    for dictionary in __UNIT_DATA:
-        if dictionary["unit"] == units:
-            return kg / dictionary["kg_per_unit"]
-    return None
+#def usafeunit_from_kg(kg, units):
+#    for dictionary in __UNIT_DATA:
+#        if dictionary["unit"] == units:
+#            return kg / dictionary["kg_per_unit"]
+#    return None
 
 @bp.route('/entry', methods=['POST'])
 @database.autocommit_db

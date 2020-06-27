@@ -310,7 +310,6 @@ def test_entry_update_no_params(monkeypatch, app, client):
 
 @pytest.mark.unit
 def test_entry_update_nonexistant(monkeypatch, app, client):
-
     entry_id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
     with app.app_context():
         db = LifeLogServer.database.get_db()
