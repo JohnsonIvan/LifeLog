@@ -218,10 +218,22 @@ def test_entry_delete_badid(app, client):
     ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True, False, True ),
     ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True, True,  False),
 ])
-def test_entry_update_happy(app, client, entry_id, add_units, add_datetime, add_weight):
-    units='kilograms'
-    datetime=1592435016
-    weight=123.45
+def test_entry_update_happy(monkeypatch, app, client, entry_id, add_units, add_datetime, add_weight):
+    units='VRA7sGtk'
+    datetime=61833
+    weight_units=0.98068
+    weight_kg=0.17910
+
+    def mocked_conversion(tmp_value, tmp_units):
+        if add_weight:
+            assert(tmp_value == weight_units)
+            assert(tmp_units == units)
+            return weight_kg
+        else:
+            assert(tmp_value is None)
+            assert(tmp_units == units)
+            return None
+    monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
 
     params={}
     if add_units:
@@ -229,7 +241,7 @@ def test_entry_update_happy(app, client, entry_id, add_units, add_datetime, add_
     if add_datetime:
         params['datetime'] = datetime
     if add_weight:
-        params['weight'] = weight
+        params['weight'] = weight_units
     with app.app_context():
         db = LifeLogServer.database.get_db()
         initial_value = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
@@ -246,12 +258,11 @@ def test_entry_update_happy(app, client, entry_id, add_units, add_datetime, add_
         row = results[0]
 
         if 'weight' in params.keys():
-            #TODO: when adding non-kg tests, mock kg_from_units to return random value for expected input and verify that it worked.
-            assert(row['weight_kg'] == params['weight'])
+            assert(row['weight_kg'] == weight_kg)
         else:
             assert(row['weight_kg'] == initial_value['weight_kg'])
         if 'datetime' in params.keys():
-            assert(row['datetime'] == params['datetime'])
+            assert(row['datetime'] == datetime)
         else:
             assert(row['datetime'] == initial_value['datetime'])
 
