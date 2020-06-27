@@ -213,12 +213,23 @@ def test_entry_delete_badid(app, client):
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 @pytest.mark.unit
-@pytest.mark.parametrize("entry_id,params", [
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'units':'kilograms', 'datetime':1592435016, 'weight':123.45}),
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'units':'kilograms',                        'weight':123.45}),
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", {'units':'kilograms', 'datetime':1592435016,                }),
+@pytest.mark.parametrize("entry_id, add_units, add_datetime, add_weight", [
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True, True,  True ),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True, False, True ),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True, True,  False),
 ])
-def test_entry_update_happy(app, client, entry_id, params):
+def test_entry_update_happy(app, client, entry_id, add_units, add_datetime, add_weight):
+    units='kilograms'
+    datetime=1592435016
+    weight=123.45
+
+    params={}
+    if add_units:
+        params['units'] = units
+    if add_datetime:
+        params['datetime'] = datetime
+    if add_weight:
+        params['weight'] = weight
     with app.app_context():
         db = LifeLogServer.database.get_db()
         initial_value = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
