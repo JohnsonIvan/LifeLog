@@ -24,7 +24,6 @@ BATCH_GET_ALL_BEFORE=1000
 BATCH_GET_ALL_COUNT=5
 BATCH_GET_ALL_PARAMS={'since':BATCH_GET_ALL_SINCE, 'before':BATCH_GET_ALL_BEFORE, 'limit':2*BATCH_GET_ALL_COUNT+100, 'offset':0}
 
-
 def parse_csv(input, /):
     if type(input) == str:
         string = input
@@ -115,9 +114,19 @@ def test_get_auth(client):
 
     auth_tests.run_tests(client.get, url)
 
-
 @pytest.mark.unit
-def test_record_happy(client):
+def test_record_happy(monkeypatch, client):
+    units="WKz2CVpF"
+    value_units=0.89934
+    value_kg=0.48191
+
+    def mocked_conversion(tmp_value, tmp_units):
+        assert(tmp_value == value_units)
+        assert(tmp_units == units)
+        return value_kg
+    monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
+
+
     params = urllib.parse.urlencode(BATCH_GET_ALL_PARAMS)
     response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
@@ -125,7 +134,7 @@ def test_record_happy(client):
     assert len(results) == 5
 
 
-    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450, 'units':'kilograms'})
+    params = urllib.parse.urlencode({'weight':value_units, 'datetime':450, 'units':units})
     response = client.post(ENTRY_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.CREATED
 
@@ -135,7 +144,7 @@ def test_record_happy(client):
     assert response.status_code == HTTPStatus.OK
     data = parse_csv(response.data)
     assert len(data) == 6
-    list_truths = list(map(lambda x: fuzzy_equals([None, "450", '0.1'], x), data))
+    list_truths = list(map(lambda x: fuzzy_equals([None, "450", str(value_kg)], x), data))
     assert(list_truths.count(True) == 1)
 
 @pytest.mark.unit
