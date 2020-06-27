@@ -292,12 +292,16 @@ def test_entry_update_happy(monkeypatch, app, client, entry_id, add_units, add_d
             assert(row['datetime'] == initial_value['datetime'])
 
 @pytest.mark.unit
-def test_entry_update_no_params(app, client):
+def test_entry_update_no_params(monkeypatch, app, client):
     entry_id = '148064f1-48bc-415d-9ff8-8a57d7ad8687'
     with app.app_context():
         db = LifeLogServer.database.get_db()
         results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
         assert(len(results) == 1)
+
+        def mocked_conversion(tmp_value, tmp_units):
+            assert(False)
+        monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
 
         db = LifeLogServer.database.get_db()
         sParams = urllib.parse.urlencode({})
@@ -305,14 +309,24 @@ def test_entry_update_no_params(app, client):
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
 @pytest.mark.unit
-def test_entry_update_nonexistant(app, client):
+def test_entry_update_nonexistant(monkeypatch, app, client):
+
     entry_id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
     with app.app_context():
         db = LifeLogServer.database.get_db()
         results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
         assert(len(results) == 0)
 
+        weight=123.45
+        datetime=1592435016
+        units='kilograms'
+        def mocked_conversion(tmp_value, tmp_units):
+            assert(tmp_value == weight)
+            assert(tmp_units == units)
+            return weight
+        monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
+
         db = LifeLogServer.database.get_db()
-        sParams = urllib.parse.urlencode({'datetime':1592435016, 'weight':123.45, 'units':'kilograms'})
+        sParams = urllib.parse.urlencode({'datetime':datetime, 'weight':weight, 'units':units})
         response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
