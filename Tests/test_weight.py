@@ -168,14 +168,34 @@ def test_entry_add_invalid(monkeypatch, client, expected_code, params_dict):
     assert response.status_code == expected_code
 
 @pytest.mark.integration
-def test_entry_add_auth(client):
-    params = urllib.parse.urlencode({'weight':0.1, 'datetime':450, 'units': 'kilograms'})
+def test_entry_add_auth(client, monkeypatch):
+    weight=0.1
+    datetime=450
+    units='kilograms'
+
+    def mocked_conversion(tmp_value, tmp_units):
+        assert(tmp_value == weight)
+        assert(tmp_units == units)
+        return tmp_value
+    monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
+
+    params = urllib.parse.urlencode({'weight':weight, 'datetime':datetime, 'units': units})
     url = ENTRY_URL + '?' + params
 
     auth_tests.run_tests(client.post, url, expected_status=HTTPStatus.CREATED)
 
 @pytest.mark.integration
 def test_entry_add_autocommits(app, client, monkeypatch):
+    weight=0.1
+    datetime=450
+    units='kilograms'
+
+    def mocked_conversion(tmp_value, tmp_units):
+        assert(tmp_value == weight)
+        assert(tmp_units == units)
+        return tmp_value
+    monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
+
     params = urllib.parse.urlencode({'weight':0.1, 'datetime':450, 'units': 'kilograms'})
     url = ENTRY_URL + '?' + params
 
