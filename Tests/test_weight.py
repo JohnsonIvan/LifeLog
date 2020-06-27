@@ -329,3 +329,22 @@ def test_entry_update_nonexistant(monkeypatch, app, client):
         sParams = urllib.parse.urlencode({'datetime':datetime, 'weight':weight, 'units':units})
         response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+@pytest.mark.unit
+@pytest.mark.parametrize("input_value, input_unit, expected, max_error", [
+    (100.0,   "kilograms", 100.0,    None),
+    (100.0,   "pounds",    45.35924, 0.01),
+    (100.0,   "pM8FqiQn",  None,     None),
+    (100,     "kilograms", None,     None),
+    ("foo",   "kilograms", None,     None),
+    ("100.0", "kilograms", None,     None),
+    ("100",   "kilograms", None,     None),
+])
+def test_kg_from_unsafe(input_value, input_unit, expected, max_error):
+    actual=LifeLogServer.weight.kg_from_unsafe(input_value, input_unit)
+    if max_error is None:
+        if(expected != actual):
+            import pdb; pdb.set_trace()
+            pass
+    else:
+        assert(abs(expected-actual) <= max_error)

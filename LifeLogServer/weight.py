@@ -24,9 +24,7 @@ bp = f.Blueprint('weight', __name__)
 sMAX_TIME_ERROR = 300
 
 def kg_from_unsafe(value, units):
-    try:
-        value = float(value)
-    except:
+    if not isinstance(value, float):
         return None
     for dictionary in __UNIT_DATA:
         if dictionary["unit"] == units:
