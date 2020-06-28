@@ -240,12 +240,17 @@ def test_entry_delete_badid(app, client):
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-     "entry_id,                              id_exists, add_units, add_datetime, add_weight, expected_error", [
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True,      True,      False,        True,       None                            ),
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True,      True,      True,         False,      None                            ),
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True,      True,      True,         True,       None                            ),
-    ('148064f1-48bc-415d-9ff8-8a57d7ad8687', True,      False,     False,        False,      HTTPStatus.BAD_REQUEST          ),
-    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', False,     True,      True,         True,       HTTPStatus.UNPROCESSABLE_ENTITY ),
+    'id_exists, add_units, add_datetime, add_weight, expected_error,                  entry_id,                           ', [
+    #happy
+    (True,      True,      True,         True,       None,                            '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      True,      False,        True,       None,                            '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      True,      True,         False,      None,                            '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      False,     True,         False,      None,                            '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+
+    #sad
+    (False,     True,      True,         True,       HTTPStatus.UNPROCESSABLE_ENTITY, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', ),
+    (True,      False,     False,        False,      HTTPStatus.BAD_REQUEST,          '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      False,     True,         True,       HTTPStatus.BAD_REQUEST,          '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
 ])
 def test_entry_update(monkeypatch, app, client, entry_id, id_exists, add_units, add_datetime, add_weight, expected_error):
     units='VRA7sGtk'
@@ -254,13 +259,12 @@ def test_entry_update(monkeypatch, app, client, entry_id, id_exists, add_units, 
     weight_kg=0.17910
 
     def mocked_conversion(tmp_value, tmp_units):
-        if add_weight:
-            assert(tmp_value == weight_units)
-            assert(tmp_units == units)
+        assert(tmp_value == (weight_units if add_weight else None))
+        assert(tmp_units == (units if add_units else None))
+
+        if add_weight and add_units:
             return weight_kg
         else:
-            assert(tmp_value is None)
-            assert(tmp_units == units)
             return None
     monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
 
