@@ -239,12 +239,15 @@ def test_entry_delete_badid(app, client):
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 @pytest.mark.unit
-@pytest.mark.parametrize("entry_id, add_units, add_datetime, add_weight", [
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True, True,  True ),
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True, False, True ),
-    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True, True,  False),
+@pytest.mark.parametrize(
+     "entry_id,                              id_exists, add_units, add_datetime, add_weight, expected_error", [
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True,      True,      False,        True,       None                            ),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True,      True,      True,         False,      None                            ),
+    ("148064f1-48bc-415d-9ff8-8a57d7ad8687", True,      True,      True,         True,       None                            ),
+    ('148064f1-48bc-415d-9ff8-8a57d7ad8687', True,      False,     False,        False,      HTTPStatus.BAD_REQUEST          ),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', False,     True,      True,         True,       HTTPStatus.UNPROCESSABLE_ENTITY ),
 ])
-def test_entry_update_happy(monkeypatch, app, client, entry_id, add_units, add_datetime, add_weight):
+def test_entry_update(monkeypatch, app, client, entry_id, id_exists, add_units, add_datetime, add_weight, expected_error):
     units='VRA7sGtk'
     datetime=61833
     weight_units=0.98068
@@ -271,15 +274,34 @@ def test_entry_update_happy(monkeypatch, app, client, entry_id, add_units, add_d
     with app.app_context():
         db = LifeLogServer.database.get_db()
         initial_value = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
-        assert(len(initial_value) == 1)
-        initial_value = initial_value[0]
+        if not id_exists:
+            assert(len(initial_value) == 0)
+        else:
+            assert(len(initial_value) == 1)
+            initial_value = initial_value[0]
 
         db = LifeLogServer.database.get_db()
         sParams = urllib.parse.urlencode(params)
         response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
-        assert response.status_code == HTTPStatus.NO_CONTENT
+
 
         results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
+
+        if expected_error is not None:
+            assert(response.status_code == expected_error)
+            if not id_exists:
+                return
+
+            assert(len(results) == 1)
+            row=results[0]
+
+            assert(row['weight_kg'] == initial_value['weight_kg'])
+            assert(row['datetime'] == initial_value['datetime'])
+            return
+
+
+        assert response.status_code == HTTPStatus.NO_CONTENT
+
         assert(len(results) == 1)
         row = results[0]
 
@@ -291,45 +313,6 @@ def test_entry_update_happy(monkeypatch, app, client, entry_id, add_units, add_d
             assert(row['datetime'] == datetime)
         else:
             assert(row['datetime'] == initial_value['datetime'])
-
-@pytest.mark.unit
-def test_entry_update_no_params(monkeypatch, app, client):
-    entry_id = '148064f1-48bc-415d-9ff8-8a57d7ad8687'
-    with app.app_context():
-        db = LifeLogServer.database.get_db()
-        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
-        assert(len(results) == 1)
-
-        def mocked_conversion(tmp_value, tmp_units):
-            assert(False)
-        monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
-
-        db = LifeLogServer.database.get_db()
-        sParams = urllib.parse.urlencode({})
-        response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-
-@pytest.mark.unit
-def test_entry_update_nonexistant(monkeypatch, app, client):
-    entry_id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
-    with app.app_context():
-        db = LifeLogServer.database.get_db()
-        results = db.execute('SELECT * FROM weight WHERE userid=? AND id=?', (auth_tests.AUTH_USERID, entry_id)).fetchall()
-        assert(len(results) == 0)
-
-        weight=123.45
-        datetime=1592435016
-        units='kilograms'
-        def mocked_conversion(tmp_value, tmp_units):
-            assert(tmp_value == weight)
-            assert(tmp_units == units)
-            return weight
-        monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
-
-        db = LifeLogServer.database.get_db()
-        sParams = urllib.parse.urlencode({'datetime':datetime, 'weight':weight, 'units':units})
-        response = client.put(ENTRY_URL + f'/{entry_id}?{sParams}', headers=auth_tests.AUTH_HEADERS)
-        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 @pytest.mark.unit
 @pytest.mark.parametrize("input_value, input_unit, expected, max_error", [
