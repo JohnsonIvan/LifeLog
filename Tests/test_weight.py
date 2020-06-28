@@ -240,32 +240,29 @@ def test_entry_delete_badid(app, client):
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    'id_exists, add_units, add_datetime, add_weight, expected_error,                  entry_id,                           ', [
+    'id_exists, add_units, add_datetime, add_weight, expected_error,                  conv_ret, entry_id,                           ', [
     #happy
-    (True,      True,      True,         True,       None,                            '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
-    (True,      True,      False,        True,       None,                            '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
-    (True,      True,      True,         False,      None,                            '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
-    (True,      False,     True,         False,      None,                            '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      True,      True,         True,       None,                            0.87282,  '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      True,      False,        True,       None,                            0.87282,  '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      True,      True,         False,      None,                            None,     '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      False,     True,         False,      None,                            None,     '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
 
     #sad
-    (False,     True,      True,         True,       HTTPStatus.UNPROCESSABLE_ENTITY, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', ),
-    (True,      False,     False,        False,      HTTPStatus.BAD_REQUEST,          '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
-    (True,      False,     True,         True,       HTTPStatus.BAD_REQUEST,          '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (False,     True,      True,         True,       HTTPStatus.UNPROCESSABLE_ENTITY, 0.87282,  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', ),
+    (True,      False,     False,        False,      HTTPStatus.BAD_REQUEST,          None,     '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      False,     True,         True,       HTTPStatus.BAD_REQUEST,          0.87282,  '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
+    (True,      True,      True,         True,       HTTPStatus.BAD_REQUEST,          None,     '148064f1-48bc-415d-9ff8-8a57d7ad8687', ),
 ])
-def test_entry_update(monkeypatch, app, client, entry_id, id_exists, add_units, add_datetime, add_weight, expected_error):
+def test_entry_update(monkeypatch, app, client, entry_id, id_exists, add_units, add_datetime, add_weight, expected_error, conv_ret):
     units='VRA7sGtk'
     datetime=61833
     weight_units=0.98068
-    weight_kg=0.17910
 
     def mocked_conversion(tmp_value, tmp_units):
         assert(tmp_value == (weight_units if add_weight else None))
         assert(tmp_units == (units if add_units else None))
 
-        if add_weight and add_units:
-            return weight_kg
-        else:
-            return None
+        return conv_ret
     monkeypatch.setattr('LifeLogServer.weight.kg_from_unsafe', mocked_conversion)
 
     params={}
@@ -310,7 +307,7 @@ def test_entry_update(monkeypatch, app, client, entry_id, id_exists, add_units, 
         row = results[0]
 
         if 'weight' in params.keys():
-            assert(row['weight_kg'] == weight_kg)
+            assert(row['weight_kg'] == conv_ret)
         else:
             assert(row['weight_kg'] == initial_value['weight_kg'])
         if 'datetime' in params.keys():
