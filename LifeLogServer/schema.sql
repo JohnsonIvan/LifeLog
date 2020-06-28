@@ -6,7 +6,7 @@ CREATE TABLE weight (
   id TEXT,
   userid TEXT NOT NULL,
   datetime INTEGER,
-  weight REAL,
+  weight_kg REAL,
   PRIMARY KEY (id)
 );
 
