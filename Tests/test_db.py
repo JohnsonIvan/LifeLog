@@ -70,7 +70,7 @@ def test_init_db_command(runner, monkeypatch):
     ('0.0.1', '0.0.2', Exception),
     ('1000!0.0.0', '0.0.3', Exception),
 ])
-def test_migrations(app, vOld, migration_vOld, expected_exception):
+def test_migration_system(app, vOld, migration_vOld, expected_exception):
     vNew=LifeLogServer.API_VERSION
 
     migration_call_count = 0
