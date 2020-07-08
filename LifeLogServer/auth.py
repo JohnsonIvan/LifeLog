@@ -7,7 +7,9 @@ from http import HTTPStatus
 
 AUTH_HEADER="token"
 
-def requireAuth(func=None, /, userid_keyword="userid"):
+__PERM_ROOT='ultimate'
+
+def requireAuth(func=None, /, permissions=["ultimate"], userid_keyword="userid"):
     """In order to authenticated a particular user, you must provide one of that user's tokens in the 'token' header.
 
     **Example**:
@@ -19,7 +21,7 @@ def requireAuth(func=None, /, userid_keyword="userid"):
     At present there is no automatic way of obtaining an API token.
     """
     if not func:
-        return functools.partial(requireAuth, userid_keyword=userid_keyword)
+        return functools.partial(requireAuth, permissions=permissions, userid_keyword=userid_keyword)
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -32,11 +34,21 @@ def requireAuth(func=None, /, userid_keyword="userid"):
 
         db = database.get_db()
 
-        rows = db.execute('SELECT userid FROM users WHERE token = ?', (givenToken,)).fetchone()
+        rows = db.execute('SELECT userid FROM tokens WHERE token = ?', (givenToken,)).fetchone()
         if rows is None or len(rows) == 0:
-            return ("The provided auth token does not have access to this resource", HTTPStatus.FORBIDDEN)
+            return ("The provided auth token is invalid", HTTPStatus.FORBIDDEN)
+        userid = rows['userid']
 
-        kwargs[userid_keyword] = rows['userid']
+        rows = db.execute('SELECT permission FROM token_perms WHERE token = ?', (givenToken,)).fetchall()
+        token_perms = list(map(lambda row: row['permission'], rows))
+        missing_permissions = []
+        if __PERM_ROOT not in token_perms:
+            for req in permissions:
+                if req not in token_perms:
+                    missing_permissions.append(req)
+        if len(missing_permissions) > 0:
+            return (f"The provided auth token is missing the following permissions: {missing_permissions}", HTTPStatus.FORBIDDEN)
 
+        kwargs[userid_keyword] = userid
         return func(*args, **kwargs)
     return wrapper

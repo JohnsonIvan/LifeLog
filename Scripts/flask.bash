@@ -15,7 +15,11 @@ DEV_DB="instance/lifelog.sqlite"
 if [ "${1:-}" = "reinit-dev" ] ; then
 	rm -f "$DEV_DB"
 	flask init-db
-	"$this" dev-db 'INSERT INTO users (userid, token) VALUES ("ee1fa47a-9a1b-4fed-a074-5af9915440fd", "dev-key")'
+	USER_ID="ee1fa47a-9a1b-4fed-a074-5af9915440fd"
+	KEY="dev-key"
+	"$this" dev-db "INSERT INTO users (userid) VALUES (\"$USER_ID\")"
+	"$this" dev-db "INSERT INTO tokens (token, userid, description) VALUES (\"$KEY\", \"$USER_ID\", \"Dev key\")"
+	"$this" dev-db "INSERT INTO token_perms (token,permission) VALUES (\"$KEY\", \"ultimate\")"
 elif [ "${1:-}" = "dev-db" ] ; then
 	shift
 	sqlite3 "${DEV_DB}" "$@"

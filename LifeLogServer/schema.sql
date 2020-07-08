@@ -1,5 +1,5 @@
 CREATE TABLE database (
-       versionno TEXT NOT NULL
+  versionno TEXT NOT NULL
 );
 
 CREATE TABLE weight (
@@ -7,13 +7,27 @@ CREATE TABLE weight (
   userid TEXT NOT NULL,
   datetime INTEGER,
   weight_kg REAL,
+  FOREIGN KEY(userid) REFERENCES users(userid),
   PRIMARY KEY (id)
 );
 
 CREATE TABLE users (
-  userid TEXT UNIQUE,
-  token TEXT UNIQUE,
-  PRIMARY KEY (userid, token)
+  userid TEXT,
+  PRIMARY KEY (userid)
+);
+
+CREATE TABLE tokens (
+  token TEXT,
+  userid TEXT,
+  description TEXT,
+  FOREIGN KEY(userid) REFERENCES users(userid),
+  PRIMARY KEY(token)
+);
+
+CREATE TABLE token_perms (
+  token TEXT,
+  permission TEXT,
+  PRIMARY KEY (token, permission)
 );
 
 CREATE TABLE cache (
@@ -21,5 +35,6 @@ CREATE TABLE cache (
   token TEXT,
   request_time INTEGER,
   response BLOB,
+  FOREIGN KEY(token) REFERENCES tokens(token),
   PRIMARY KEY (uuid)
-)
+);

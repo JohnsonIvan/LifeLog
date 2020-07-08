@@ -5,7 +5,7 @@ from http import HTTPStatus
 import LifeLogServer
 
 AUTH_HEADER='token'
-AUTH_TOKEN='test-key'
+AUTH_TOKEN='test-key-1'
 AUTH_USERID='cf1f8a6d-c3de-4987-9478-ed14fff7fe33'
 AUTH_TOKEN_BAD=AUTH_TOKEN+'oiawejklfxcvkjlweeeoisdvwe'
 
