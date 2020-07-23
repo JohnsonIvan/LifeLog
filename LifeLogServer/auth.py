@@ -19,7 +19,7 @@ def requireAuth(func=None, /, userid_keyword="userid"):
     At present there is no automatic way of obtaining an API token.
     """
     if not func:
-        return functools.partial(requireAuth)
+        return functools.partial(requireAuth, userid_keyword=userid_keyword)
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
