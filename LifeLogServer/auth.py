@@ -34,7 +34,7 @@ def requireAuth(func=None, /, permissions=["ultimate"], userid_keyword="userid")
 
         rows = db.execute('SELECT userid FROM tokens WHERE token = ?', (givenToken,)).fetchone()
         if rows is None or len(rows) == 0:
-            return ("The provided auth token is invalid", HTTPStatus.FORBIDDEN)
+            return ("The provided auth token is invalid", HTTPStatus.UNAUTHORIZED)
         userid = rows['userid']
 
         rows = db.execute('SELECT permission FROM token_perms WHERE token = ?', (givenToken,)).fetchall()

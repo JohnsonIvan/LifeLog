@@ -25,7 +25,7 @@ def run_tests(method, url, given_headers={}, expected_status=HTTPStatus.OK):
     headers = given_headers.copy()
     headers[AUTH_HEADER]= AUTH_TOKEN_BAD
     response = method(url, headers=headers)
-    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
 
     headers = given_headers.copy()
     headers[AUTH_HEADER]= AUTH_TOKEN
