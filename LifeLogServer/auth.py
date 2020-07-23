@@ -30,8 +30,6 @@ def requireAuth(func=None, /, permissions=["ultimate"], userid_keyword="userid")
         except KeyError:
             return (f'You must use the \"{AUTH_HEADER}\" header to authenticate', HTTPStatus.UNAUTHORIZED)
 
-        givenDB = 'db' in kwargs
-
         db = database.get_db()
 
         rows = db.execute('SELECT userid FROM tokens WHERE token = ?', (givenToken,)).fetchone()
