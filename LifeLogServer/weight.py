@@ -18,6 +18,10 @@ from . import cache
 __UNIT_DATA=[{"unit": "kilograms", "kg_per_unit": 1}, {"unit": "pounds", "kg_per_unit": 0.45359237}]
 __UNITS = list(map(lambda d: d['unit'], __UNIT_DATA))
 
+AUTH_WEIGHT_READ="weight-read"
+AUTH_WEIGHT_ADD="weight-add"
+AUTH_WEIGHT_DESTRUCTIVE="weight-modify"
+
 bp = f.Blueprint('weight', __name__)
 
 #maximum acceptable offset between our clock and the client's
@@ -40,7 +44,7 @@ def kg_from_unsafe(value, units):
 @bp.route('/entry', methods=['POST'])
 @database.autocommit_db
 @cache.cache
-@auth.requireAuth
+@auth.requireAuth(permissions=[AUTH_WEIGHT_ADD])
 def entry_add(userid):
     """Add one new weight entry
 
@@ -103,7 +107,7 @@ def entry_add(userid):
 @bp.route('/entry/<uuid:entryid>', methods=['PUT'])
 @database.autocommit_db
 @cache.cache
-@auth.requireAuth()
+@auth.requireAuth(permissions=[AUTH_WEIGHT_DESTRUCTIVE])
 def entry_update(userid, entryid):
     """Update the given weight entry.
 
@@ -154,7 +158,7 @@ def entry_update(userid, entryid):
 @bp.route('/entry/<uuid:entryid>', methods=['DELETE'])
 @database.autocommit_db()
 @cache.cache()
-@auth.requireAuth()
+@auth.requireAuth(permissions=[AUTH_WEIGHT_DESTRUCTIVE])
 def entry_delete(userid, entryid):
     """Delete one weight entry.
 
@@ -178,7 +182,7 @@ def entry_delete(userid, entryid):
         assert(False)
 
 @bp.route('/batch', methods=['GET'])
-@auth.requireAuth()
+@auth.requireAuth(permissions=[AUTH_WEIGHT_READ])
 def batch_get(userid):
     """Get weight measurements for a given time range.
 
