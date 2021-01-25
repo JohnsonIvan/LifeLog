@@ -48,6 +48,7 @@ echo 'Launch LifeLogServer, wait until loaded then stop it'
 echo -e '\tsudo systemctl start lifelogserver'
 echo 'Purge/reinitialize the database if necessary (automatic migrations have not yet been implemented, as of v0.5.0):'
 echo -e "\tpurge: sudo trash /srv/LifeLog/Code/.venv/var/LifeLogServer-instance/lifelog.sqlite"
+echo -e "\tRestore backup: sudo cp -r ./path/to/backup/venv_var_LifeLogServer-instance.bak/ /srv/LifeLog/Code/.venv/var/LifeLogServer-instance; sudo chown -R lifelogserver:lifelogserver /srv/LifeLog/Code/.venv/var/LifeLogServer-instance"
 echo -e "\treinitialize: sudo -u lifelogserver bash -c 'cd /srv/LifeLog/Code; source ./.venv/bin/activate; export FLASK_APP=LifeLogServer; flask init-db'"
 echo 'Set a secret key for doing secure stuff like signing session'
 echo -e '\tSee https://flask.palletsprojects.com/en/1.1.x/tutorial/deploy/#configure-the-secret-key for instructions'
