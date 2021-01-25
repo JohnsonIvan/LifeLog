@@ -10,6 +10,14 @@ cd "$GIT"
 export FLASK_APP=./
 export FLASK_ENV=development
 
+if [ -z ${VIRTUAL_ENV+x} ]; then
+	echo 'Warning: you have not activated the python virtual environment;'
+	echo 'You must do so before running this script'
+	exit 1
+fi
+
+
+
 DEV_DB="instance/lifelog.sqlite"
 
 if [ "${1:-}" = "reinit-dev" ] ; then
