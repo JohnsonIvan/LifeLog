@@ -17,8 +17,13 @@ if [ -z ${VIRTUAL_ENV+x} ]; then
 fi
 
 
+F_DB="lifelog.sqlite"
 
-DEV_DB="instance/lifelog.sqlite"
+DEV_DB_DIR="instance"
+PROD_DB_DIR="/srv/LifeLog/Code/.venv/var/LifeLogServer-instance/"
+
+DEV_DB="$DEV_DB_DIR/$F_DB"
+PROD_DB="$PROD_DB_DIR/$F_DB"
 
 if [ "${1:-}" = "reinit-dev" ] ; then
 	rm -f "$DEV_DB"
@@ -31,6 +36,9 @@ if [ "${1:-}" = "reinit-dev" ] ; then
 elif [ "${1:-}" = "dev-db" ] ; then
 	shift
 	sqlite3 "${DEV_DB}" "$@"
+elif [ "${1:-}" = "prod-db" ] ; then
+	shift
+	sudo -u lifelogserver sqlite3 "${PROD_DB}" "$@"
 elif [ "${1:-}" = "run" ] ; then
 	flask run --host=0.0.0.0
 else
