@@ -23,8 +23,16 @@ At present, Arch Linux is the only supported platform for running the server.
 Documentation can be found online:
 https://life-log-server.readthedocs.io/en/master/
 
-# Setup
+# Development
 
-Before starting development for LifeLogServer, there are a few things you have
-to do such as installing dependencies and setting up a python virtual
-environment. The `setup_dev.bash` script will handle this for you.
+To setup a new development environment, run the `./Scripts/setup_dev.bash`
+script. This script will use `pacman` to install dependencies to your host, then
+setup a python virtual environment ("venv") and install further python
+dependencies there.
+
+To run the test suite, run the `Scripts/test.bash` script.
+
+# Installation
+
+Run `Scripts/deploy.bash`. This will generate a python package and install it
+and any other necessary files for running LLS.

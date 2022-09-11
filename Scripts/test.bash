@@ -12,7 +12,13 @@ if [ -z "${VIRTUAL_ENV+x}" ]; then
 	exit 1
 fi
 
-if [ "${1:-}" == "--coverage" ]; then
+if [ "${1:-}" == "--help" ]; then
+	echo "Supported options:"
+	echo "    * --coverage: run all tests while tracking line coverage"
+	echo "      * --fail: fail if line coverate is less than 100%"
+	echo "    * --unit: only run unit tests"
+	echo "    * --integration: only run integration tests"
+elif [ "${1:-}" == "--coverage" ]; then
 	echo running all tests with coverage
 	coverage run -m pytest
 	status=0
