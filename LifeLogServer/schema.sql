@@ -31,7 +31,7 @@ CREATE TABLE cache (
   request_time INTEGER,
   response BLOB,
   FOREIGN KEY(token) REFERENCES tokens(token),
-  PRIMARY KEY (uuid)
+  PRIMARY KEY (uuid, token)
 );
 
 

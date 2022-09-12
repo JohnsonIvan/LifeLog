@@ -20,21 +20,17 @@ def cache(func=None, /, **factoryKwargs):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         cacheid = request.headers.get(CACHE_HEADER, None, type=str)
-        if cacheid is None:
+        givenToken = request.headers.get(auth.AUTH_HEADER, None, type=str)
+        if cacheid is None or givenToken is None:
+            # TODO: should we return an error this case?
             return func(*args, **kwargs)
         try:
             uuid.UUID(cacheid)
         except ValueError:
             return (f'{CACHE_HEADER} header could not be parsed as a UUID (RFC-4122)', HTTPStatus.BAD_REQUEST)
 
-
-        if auth.AUTH_HEADER in f.request.headers:
-            givenToken = f.request.headers[auth.AUTH_HEADER]
-        else:
-            givenToken = None
-
         db = database.get_db()
-        rows = db.execute('SELECT * FROM cache WHERE uuid = ? AND (token = ? OR (token IS NULL AND ? IS NULL))', (cacheid, givenToken, givenToken)).fetchall()
+        rows = db.execute('SELECT * FROM cache WHERE uuid = ? AND token = ?', (cacheid, givenToken)).fetchall()
         assert(len(rows) <= 1)
         if len(rows) == 1:
             row = rows[0]
@@ -46,9 +42,8 @@ def cache(func=None, /, **factoryKwargs):
 
         response = func(*args, **kwargs)
         response = f.make_response(response)
+        response.freeze()
         bResponse = pickle.dumps(response)
-
-        bRequest = pickle.dumps(request)
 
         db.execute('INSERT INTO cache (uuid, token, request_time, response) VALUES (?, ?, ?, ?)',
                                       (cacheid, givenToken, request_time, bResponse))

@@ -35,10 +35,10 @@ elif [ "${1:-}" == "--coverage" ]; then
 	exit $status
 elif [ "${1:-}" == "--unit" ]; then
 	echo "Running unit tests"
-	pytest --exitfirst -m unit
+	pytest -m unit
 elif [ "${1:-}" == "--integration" ]; then
 	echo "Running integration tests"
-	pytest --exitfirst -m integration
+	pytest -m integration
 else
 	"$0" --unit || (echo Failed to pass all unit tests; exit 1)
 	"$0" --integration || (echo Failed to pass all integration tests; exit 1)
