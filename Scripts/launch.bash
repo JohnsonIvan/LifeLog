@@ -19,4 +19,4 @@ source "${ENV_DIR}/bin/activate"
 echo "Installing LLS in the venv"
 pip install "${PKG_NAME}-"*".whl"
 
-waitress-serve --call "${APP_NAME}:create_app" --port 8080
+waitress-serve --port 8080 --call "${APP_NAME}:create_app"
