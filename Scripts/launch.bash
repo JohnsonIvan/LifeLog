@@ -4,7 +4,7 @@ set -euo pipefail
 DIR="$(dirname "$0")"
 cd "$DIR"
 
-ENV_DIR=".venv"
+ENV_DIR="venv"
 PKG_NAME="lifelogserver"
 APP_NAME="LifeLogServer"
 
