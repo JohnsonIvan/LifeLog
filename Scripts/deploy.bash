@@ -11,9 +11,6 @@ SCRIPTS_DIR="$(pwd)/Scripts/"
 DEV_ENV_DIR="$(pwd)/.venv"
 PROD_DIR='/srv/LifeLog/Code'
 PROD_ENV_DIR_NAME="venv"
-
-# TODO: should we apply these permissions recursively? Realistically, it should
-# be sufficient to apply them to the prod directory?
 CHMOD_PERMISSIONS=750
 
 if ! [ -e "$DEV_ENV_DIR" ]; then
@@ -44,12 +41,9 @@ sudo chmod "$CHMOD_PERMISSIONS" "$PROD_DIR"
 
 sudo rm -f "$PROD_DIR/$APP_NAME-"*
 
-sudo install "dist/$APP_NAME-"*".whl" "$PROD_DIR"
-
-sudo cp "$SCRIPTS_DIR/launch.bash" "$PROD_DIR"
-sudo chmod 755 "$PROD_DIR/launch.bash"
-
-sudo cp "$SCRIPTS_DIR/lifelogserver.service" "/etc/systemd/system/"
+sudo install "--mode=${CHMOD_PERMISSIONS}" "dist/$APP_NAME-"*".whl"             "$PROD_DIR"
+sudo install "--mode=${CHMOD_PERMISSIONS}" "$SCRIPTS_DIR/launch.bash"           "$PROD_DIR"
+sudo install "--mode=${CHMOD_PERMISSIONS}" "$SCRIPTS_DIR/lifelogserver.service" "/etc/systemd/system/"
 
 sudo systemctl daemon-reload
 
