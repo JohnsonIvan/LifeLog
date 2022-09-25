@@ -41,11 +41,14 @@ sudo chmod "$CHMOD_PERMISSIONS" "$PROD_DIR"
 
 sudo rm -f "$PROD_DIR/$APP_NAME-"*
 
-sudo install "--mode=${CHMOD_PERMISSIONS}" "dist/$APP_NAME-"*".whl"             "$PROD_DIR"
-sudo install "--mode=${CHMOD_PERMISSIONS}" "$SCRIPTS_DIR/launch.bash"           "$PROD_DIR"
-sudo install "--mode=${CHMOD_PERMISSIONS}" "$SCRIPTS_DIR/lifelogserver.service" "/etc/systemd/system/"
+sudo install "--mode=${CHMOD_PERMISSIONS}" "dist/$APP_NAME-"*".whl"                    "$PROD_DIR"
+sudo install "--mode=${CHMOD_PERMISSIONS}" "$SCRIPTS_DIR/launch.bash"                  "$PROD_DIR"
+sudo install "--mode=${CHMOD_PERMISSIONS}" "$SCRIPTS_DIR/lifelogserver.service"        "/etc/systemd/system/"
+sudo install "--mode=${CHMOD_PERMISSIONS}" "$SCRIPTS_DIR/net.ivanjohnson.lifelog.conf" "/etc/nginx/servers/"
 
 sudo systemctl daemon-reload
+sudo systemctl restart lifelogserver
+sudo systemctl reload nginx
 
 cat << delimiter
 Launch LifeLogServer, wait until loaded then stop it:
