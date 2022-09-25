@@ -7,3 +7,5 @@
 __pycache__/
 /Docs/Build/
 /lifelogserver.egg-info/
+/dist
+/build
