@@ -11,7 +11,7 @@ SCRIPTS_DIR="$(pwd)/Scripts"
 DEV_ENV_DIR="$(pwd)/.venv"
 WEBSTATIC_DIR="$(pwd)/WebStatic"
 PROD_DIR='/srv/LifeLog'
-CODE_DIR='${PROD_DIR}/Code' #TODO: needs a better name. Backend?
+CODE_DIR="${PROD_DIR}/Code" #TODO: needs a better name. Backend?
 PROD_ENV_DIR_NAME="venv"
 CHMOD_PERMISSIONS=750
 
