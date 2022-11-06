@@ -16,7 +16,6 @@ reverse_domain="net.ivanjohnson.lifelog"
 
 PROD_DIR="/srv/LifeLog"
 PROD_WEBSTATIC_DIR="/srv/http/${reverse_domain}"
-PROD_CODE_DIR="${PROD_DIR}/Code" #TODO: needs a better name. Backend?
 PROD_ENV_DIR_NAME="venv"
 
 if ! [ -e "$DEV_ENV_DIR" ]; then
@@ -38,16 +37,18 @@ python setup.py bdist_wheel
 
 id -u "$USER" || (echo creating the user "\"${USER}\""; sudo useradd -r -s /usr/bin/nologin "$USER")
 
-sudo rm -f "$PROD_CODE_DIR/$APP_NAME-"*
+sudo rm -f "$PROD_DIR/$APP_NAME-"*
 
-CHMOD_READABLE=644
-(cd "${WEBSTATIC_DIR}"; find . -type f -exec sudo install -D  --owner "root" --group "$GROUP" "--mode=${CHMOD_READABLE}" "{}" "${PROD_WEBSTATIC_DIR}/{}" \;)
+(cd "${WEBSTATIC_DIR}"; find . -type f -exec sudo install -D  --owner "root" --group "$GROUP" "--mode=644" "{}" "${PROD_WEBSTATIC_DIR}/{}" \;)
 
-CHMOD_EXEC=750
-sudo install -D "--mode=${CHMOD_EXEC}" --owner "root" --group "$GROUP" "dist/$APP_NAME-"*".whl"                    "$PROD_CODE_DIR" # TODO: is it possible for there to be multiple versions?
-sudo install -D "--mode=${CHMOD_EXEC}" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/launch.bash"                  "$PROD_CODE_DIR"
-sudo install -D "--mode=${CHMOD_EXEC}" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/lifelogserver.service"        "/etc/systemd/system/"
-sudo install -D "--mode=${CHMOD_EXEC}" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/net.ivanjohnson.lifelog.conf" "/etc/nginx/servers/"
+sudo install -d "--mode=700" --owner "root" --group "$GROUP"                                             "$PROD_DIR"
+sudo install -D "--mode=755" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/launch.bash"                  "$PROD_DIR/"
+
+sudo install -D "--mode=644" --owner "root" --group "$GROUP" "dist/$APP_NAME-"*".whl"                    "$PROD_DIR/"
+sudo install -D "--mode=644" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/lifelogserver.service"        "/etc/systemd/system/"
+sudo install -D "--mode=644" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/net.ivanjohnson.lifelog.conf" "/etc/nginx/servers/"
+
+sudo chmod 770 "$PROD_DIR"
 
 sudo systemctl daemon-reload
 sudo systemctl restart lifelogserver
@@ -60,17 +61,17 @@ Launch LifeLogServer, wait until loaded then stop it:
 	sudo systemctl stop lifelogserver
 Purge/reinitialize the database if necessary (automatic migrations have not yet been implemented, as of 2022-09-19):
 	purge:
-		sudo trash "${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/LifeLogServer-instance/lifelog.sqlite"
+		sudo trash "${PROD_DIR}/${PROD_ENV_DIR_NAME}/var/LifeLogServer-instance/lifelog.sqlite"
 	Restore backup:
 		# UNTESTED
-		sudo install --owner "$USER" --group "$GROUP" -d ./path/to/backup/${PROD_ENV_DIR_NAME}_var_LifeLogServer-instance.bak -t "${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/LifeLogServer-instance"
+		sudo install --owner "$USER" --group "$GROUP" -d ./path/to/backup/${PROD_ENV_DIR_NAME}_var_LifeLogServer-instance.bak -t "${PROD_DIR}/${PROD_ENV_DIR_NAME}/var/LifeLogServer-instance"
 	(Re-)initialize:
-		sudo -u "$USER" bash -c 'cd "$PROD_CODE_DIR"; source ./${PROD_ENV_DIR_NAME}/bin/activate; export FLASK_APP=LifeLogServer; flask init-db'
+		sudo -u "$USER" bash -c 'cd "$PROD_DIR"; source ./${PROD_ENV_DIR_NAME}/bin/activate; export FLASK_APP=LifeLogServer; flask init-db'
 Set a secret key for doing secure stuff like signing session:
 	sudo -u "$USER" bash << DELIMITER
-	mkdir -p "${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/"
-	python -c 'import os; print(f"SECRET_KEY = {os.urandom(16)}")' > ${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/config.py
-	chmod 600 ${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/config.py
+	mkdir -p "${PROD_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/"
+	python -c 'import os; print(f"SECRET_KEY = {os.urandom(16)}")' > ${PROD_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/config.py
+	chmod 600 ${PROD_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/config.py
 	DELIMITER
 Enable/start LifeLogServer:
 	sudo systemctl enable --now "$APP_NAME"
