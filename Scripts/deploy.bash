@@ -11,10 +11,13 @@ GROUP="$USER"
 SCRIPTS_DIR="$(pwd)/Scripts"
 DEV_ENV_DIR="$(pwd)/.venv"
 WEBSTATIC_DIR="$(pwd)/WebStatic"
-PROD_DIR='/srv/LifeLog'
-CODE_DIR="${PROD_DIR}/Code" #TODO: needs a better name. Backend?
+reverse_domain="net.ivanjohnson.lifelog"
+
+
+PROD_DIR="/srv/LifeLog"
+PROD_WEBSTATIC_DIR="/srv/http/${reverse_domain}"
+PROD_CODE_DIR="${PROD_DIR}/Code" #TODO: needs a better name. Backend?
 PROD_ENV_DIR_NAME="venv"
-CHMOD_PERMISSIONS=750
 
 if ! [ -e "$DEV_ENV_DIR" ]; then
 	echo "dev is not setup; doing now"
@@ -35,15 +38,16 @@ python setup.py bdist_wheel
 
 id -u "$USER" || (echo creating the user "\"${USER}\""; sudo useradd -r -s /usr/bin/nologin "$USER")
 
-sudo rm -f "$CODE_DIR/$APP_NAME-"*
+sudo rm -f "$PROD_CODE_DIR/$APP_NAME-"*
 
-# ~sudo cp $WEBSTATIC_DIR $PROD_DIR
-(cd "${WEBSTATIC_DIR}"; find . -type f -exec sudo install -D "--mode=${CHMOD_PERMISSIONS}" "{}" "${PROD_DIR}/WebStatic/{}" \;)
+CHMOD_READABLE=644
+(cd "${WEBSTATIC_DIR}"; find . -type f -exec sudo install -D  --owner "root" --group "$GROUP" "--mode=${CHMOD_READABLE}" "{}" "${PROD_WEBSTATIC_DIR}/{}" \;)
 
-sudo install -D "--mode=${CHMOD_PERMISSIONS}" --owner "root" --group "$GROUP" "dist/$APP_NAME-"*".whl"                    "$CODE_DIR" # TODO: is it possible for there to be multiple versions?
-sudo install -D "--mode=${CHMOD_PERMISSIONS}" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/launch.bash"                  "$CODE_DIR"
-sudo install -D "--mode=${CHMOD_PERMISSIONS}" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/lifelogserver.service"        "/etc/systemd/system/"
-sudo install -D "--mode=${CHMOD_PERMISSIONS}" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/net.ivanjohnson.lifelog.conf" "/etc/nginx/servers/"
+CHMOD_EXEC=750
+sudo install -D "--mode=${CHMOD_EXEC}" --owner "root" --group "$GROUP" "dist/$APP_NAME-"*".whl"                    "$PROD_CODE_DIR" # TODO: is it possible for there to be multiple versions?
+sudo install -D "--mode=${CHMOD_EXEC}" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/launch.bash"                  "$PROD_CODE_DIR"
+sudo install -D "--mode=${CHMOD_EXEC}" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/lifelogserver.service"        "/etc/systemd/system/"
+sudo install -D "--mode=${CHMOD_EXEC}" --owner "root" --group "$GROUP" "$SCRIPTS_DIR/net.ivanjohnson.lifelog.conf" "/etc/nginx/servers/"
 
 sudo systemctl daemon-reload
 sudo systemctl restart lifelogserver
@@ -56,17 +60,17 @@ Launch LifeLogServer, wait until loaded then stop it:
 	sudo systemctl stop lifelogserver
 Purge/reinitialize the database if necessary (automatic migrations have not yet been implemented, as of 2022-09-19):
 	purge:
-		sudo trash "${CODE_DIR}/${PROD_ENV_DIR_NAME}/var/LifeLogServer-instance/lifelog.sqlite"
+		sudo trash "${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/LifeLogServer-instance/lifelog.sqlite"
 	Restore backup:
 		# UNTESTED
-		sudo install --owner "$USER" --group "$GROUP" -d ./path/to/backup/${PROD_ENV_DIR_NAME}_var_LifeLogServer-instance.bak -t "${CODE_DIR}/${PROD_ENV_DIR_NAME}/var/LifeLogServer-instance"
+		sudo install --owner "$USER" --group "$GROUP" -d ./path/to/backup/${PROD_ENV_DIR_NAME}_var_LifeLogServer-instance.bak -t "${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/LifeLogServer-instance"
 	(Re-)initialize:
-		sudo -u "$USER" bash -c 'cd "$CODE_DIR"; source ./${PROD_ENV_DIR_NAME}/bin/activate; export FLASK_APP=LifeLogServer; flask init-db'
+		sudo -u "$USER" bash -c 'cd "$PROD_CODE_DIR"; source ./${PROD_ENV_DIR_NAME}/bin/activate; export FLASK_APP=LifeLogServer; flask init-db'
 Set a secret key for doing secure stuff like signing session:
 	sudo -u "$USER" bash << DELIMITER
-	mkdir -p "${CODE_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/"
-	python -c 'import os; print(f"SECRET_KEY = {os.urandom(16)}")' > ${CODE_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/config.py
-	chmod 600 ${CODE_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/config.py
+	mkdir -p "${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/"
+	python -c 'import os; print(f"SECRET_KEY = {os.urandom(16)}")' > ${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/config.py
+	chmod 600 ${PROD_CODE_DIR}/${PROD_ENV_DIR_NAME}/var/flaskr-instance/config.py
 	DELIMITER
 Enable/start LifeLogServer:
 	sudo systemctl enable --now "$APP_NAME"
