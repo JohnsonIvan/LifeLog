@@ -252,7 +252,9 @@ def batch_get(userid):
         ax.xaxis.set_major_formatter(mpl_dates.DateFormatter(time_format))
         ax.set_ylabel('Weight (kg)')
         ax.set_xlabel('Datetime (local time)')
-        ax.set_ylim(bottom=0)
+        # ax.set_ylim(bottom=0)
+        # TODO: do math on ylim; e.g. scale y-axis s.t. each vertical inch doesn't represent more than X kg
+        # TODO: higher image resolution; `savefig` supports `dpi=300`, but `print_png` does not -_-
 
         fig.autofmt_xdate()
         fig.tight_layout()
