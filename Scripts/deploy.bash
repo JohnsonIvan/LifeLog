@@ -28,6 +28,8 @@ set +euo pipefail
 source "${DEV_ENV_DIR}/bin/activate"
 set -euo pipefail
 
+sudo rm -f "dist/$APP_NAME-"*".whl"
+
 pip install wheel
 
 echo 'Doing an interactive `git clean` before the build.' "You're in charge."
@@ -37,7 +39,7 @@ python setup.py bdist_wheel
 
 id -u "$USER" || (echo creating the user "\"${USER}\""; sudo useradd -r -s /usr/bin/nologin "$USER")
 
-sudo rm -f "$PROD_DIR/$APP_NAME-"*
+sudo rm -f "$PROD_DIR/$APP_NAME-"*".whl"
 
 (cd "${WEBSTATIC_DIR}"; find . -type f -exec sudo install -D  --owner "root" --group "$GROUP" "--mode=644" "{}" "${PROD_WEBSTATIC_DIR}/{}" \;)
 
