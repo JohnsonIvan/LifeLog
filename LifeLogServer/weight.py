@@ -83,16 +83,16 @@ def entry_add(userid):
 
     weight_kg = kg_from_unsafe(weight, units)
     if weight_kg is None:
-        msg = f'The provided measurement, "{weight} {units}", is not valid. The "weight" parameter must be a number and the "units" parameter must be one of {__UNITS}'
+        msg = f'The provided measurement, "{weight} {units}", is not valid. The "weight" parameter must be a number and the "units" parameter must be one of {__UNITS}\n'
         return (msg, HTTPStatus.BAD_REQUEST)
 
 
     now = time.time()
     if dt > now + sMAX_TIME_ERROR:
         sErr=dt - now
-        msg = f"The given time ({dt}) is in the future; the current time is {now}."
+        msg = f"The given time ({dt}) is in the future; the current time is {now}.\n"
         if sErr > (now - 60*60*24*365)*1e3: # pragma: no cover
-            msg += "\n\tMaybe the time parameter was provided in units of milliseconds instead of seconds?"
+            msg += "\tMaybe you used units of milliseconds instead of seconds?\n"
         return (msg, HTTPStatus.UNPROCESSABLE_ENTITY)
 
 
@@ -125,16 +125,16 @@ def entry_update(userid, entryid):
     units = request.args.get('units', None, type=str)
 
     if dt is None and weight is None:
-        return f'You must provide at least one of the two parameters "datetime" (an int) and "weight" (a float)', HTTPStatus.BAD_REQUEST
+        return f'You must provide at least one of the two parameters "datetime" (an int) and "weight" (a float)\n', HTTPStatus.BAD_REQUEST
 
     if (weight is not None) and (units is None):
-        return f'You must specify the units of the provided weight measurement using the "units" parameter', HTTPStatus.BAD_REQUEST
+        return f'You must specify the units of the provided weight measurement using the "units" parameter\n', HTTPStatus.BAD_REQUEST
 
     weight_kg = kg_from_unsafe(weight, units)
 
     if (weight is not None) and (weight_kg is None):
         assert(units not in __UNITS)
-        return f'The value of "units" must be one of {__UNITS}; the value you gave is {units}.', HTTPStatus.BAD_REQUEST
+        return f'The value of "units" must be one of {__UNITS}; the value you gave is {units}.\n', HTTPStatus.BAD_REQUEST
 
     db = database.get_db()
 
@@ -149,9 +149,9 @@ def entry_update(userid, entryid):
                                             (dt,        weight_kg,     str(userid), str(entryid)))
 
     if ret.rowcount == 0:
-        return f"", HTTPStatus.UNPROCESSABLE_ENTITY
+        return f"\n", HTTPStatus.UNPROCESSABLE_ENTITY
     elif ret.rowcount == 1:
-        return f"", HTTPStatus.NO_CONTENT
+        return f"\n", HTTPStatus.NO_CONTENT
     else: # pragma: no cover
         assert(False)
 
@@ -175,9 +175,9 @@ def entry_delete(userid, entryid):
                                                (str(userid),     str(entryid)))
 
     if ret.rowcount == 0:
-        return f"", HTTPStatus.UNPROCESSABLE_ENTITY
+        return f"\n", HTTPStatus.UNPROCESSABLE_ENTITY
     elif ret.rowcount == 1:
-        return f"", HTTPStatus.NO_CONTENT
+        return f"\n", HTTPStatus.NO_CONTENT
     else: # pragma: no cover
         assert(False)
 
@@ -225,7 +225,7 @@ def batch_get(userid):
     marker_size = request.args.get('marker_size', None, type=int)
 
     if before is None or since is None or limit is None or offset is None:
-        return ("Query is missing missing at least one of the required int parameters: before, since, limit, offset", HTTPStatus.BAD_REQUEST)
+        return ("Query is missing missing at least one of the required int parameters: before, since, limit, offset\n", HTTPStatus.BAD_REQUEST)
 
     db = database.get_db()
 
@@ -263,7 +263,7 @@ def batch_get(userid):
         mpl_FigureCanvas(fig).print_png(output)
         return f.Response(output.getvalue(), mimetype='image/png')
     else:
-        return (f"The provided ret_format ({ret_format}) is invalid", HTTPStatus.UNPROCESSABLE_ENTITY)
+        return (f"The provided ret_format ({ret_format}) is invalid\n", HTTPStatus.UNPROCESSABLE_ENTITY)
 
 #@bp.route('/batch', methods=['POST'])
 #@auth.requireAuth()

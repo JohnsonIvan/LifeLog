@@ -28,13 +28,13 @@ def requireAuth(func=None, /, permissions=["ultimate"], userid_keyword="userid")
         try:
             givenToken = f.request.headers[AUTH_HEADER]
         except KeyError:
-            return (f'You must use the \"{AUTH_HEADER}\" header to authenticate', HTTPStatus.UNAUTHORIZED)
+            return (f'You must use the \"{AUTH_HEADER}\" header to authenticate\n', HTTPStatus.UNAUTHORIZED)
 
         db = database.get_db()
 
         rows = db.execute('SELECT userid FROM tokens WHERE token = ?', (givenToken,)).fetchone()
         if rows is None or len(rows) == 0:
-            return ("The provided auth token is invalid", HTTPStatus.UNAUTHORIZED)
+            return ("The provided auth token is invalid\n", HTTPStatus.UNAUTHORIZED)
         userid = rows['userid']
 
         rows = db.execute('SELECT permission FROM token_perms WHERE token = ?', (givenToken,)).fetchall()
@@ -45,7 +45,7 @@ def requireAuth(func=None, /, permissions=["ultimate"], userid_keyword="userid")
                 if req not in token_perms:
                     missing_permissions.append(req)
         if len(missing_permissions) > 0:
-            return (f"The provided auth token is missing the following permissions: {missing_permissions}", HTTPStatus.FORBIDDEN)
+            return (f"The provided auth token is missing the following permissions: {missing_permissions}\n", HTTPStatus.FORBIDDEN)
 
         kwargs[userid_keyword] = userid
         return func(*args, **kwargs)

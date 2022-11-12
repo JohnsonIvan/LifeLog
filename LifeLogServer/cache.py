@@ -27,7 +27,7 @@ def cache(func=None, /, **factoryKwargs):
         try:
             uuid.UUID(cacheid)
         except ValueError:
-            return (f'{CACHE_HEADER} header could not be parsed as a UUID (RFC-4122)', HTTPStatus.BAD_REQUEST)
+            return (f'{CACHE_HEADER} header could not be parsed as a UUID (RFC-4122)\n', HTTPStatus.BAD_REQUEST)
 
         db = database.get_db()
         rows = db.execute('SELECT * FROM cache WHERE uuid = ? AND token = ?', (cacheid, givenToken)).fetchall()
