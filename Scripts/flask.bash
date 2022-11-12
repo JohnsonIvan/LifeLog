@@ -8,7 +8,7 @@ GIT="$(git rev-parse --show-toplevel)"
 cd "$GIT"
 
 export FLASK_APP=./
-export FLASK_ENV=development
+export FLASK_DEBUG=1
 
 if [ -z ${VIRTUAL_ENV+x} ]; then
 	echo 'Warning: you have not activated the python virtual environment;'
