@@ -79,4 +79,14 @@ Enable/start LifeLogServer:
 	sudo systemctl enable --now "$APP_NAME"
 Check for warnings/errors:
 	journalctl -eu "$APP_NAME"
+Open SQL console:
+	sudo -u lifelogserver sqlite3 /srv/LifeLog/venv/var/LifeLogServer-instance/lifelog.sqlite
+
+We don't yet have an API for creating users/tokens, so in the meantime some
+manual SQL work is necessary. Replace "XXX" with the token you want to use, a
+random secret string. NOT a password, as this is not hashed or anything.
+
+	INSERT INTO users (userid) VALUES ("itj");
+	INSERT INTO tokens (token, userid, description) VALUES (XXX, "itj", "cellphone token");
+	INSERT INTO token_perms (token, permission) VALUES (XXX, "weight-read"); # use 'ultimate' to grant all permissions
 delimiter
