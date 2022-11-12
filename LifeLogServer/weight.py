@@ -20,7 +20,7 @@ __UNITS = list(map(lambda d: d['unit'], __UNIT_DATA))
 
 AUTH_WEIGHT_READ="weight-read"
 AUTH_WEIGHT_ADD="weight-add"
-AUTH_WEIGHT_DESTRUCTIVE="weight-modify"
+AUTH_WEIGHT_DESTRUCTIVE="weight-delete"
 
 bp = f.Blueprint('weight', __name__)
 
