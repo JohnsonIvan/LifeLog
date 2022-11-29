@@ -7,7 +7,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'flask', 'waitress>=1.4.4', 'matplotlib>=3.2.1', 'numpy>=1.18.5'
+        'flask', 'waitress>=2.1.2', 'matplotlib>=3.2.1', 'numpy>=1.18.5'
     ],
     extras_require={"test": ["pytest", "coverage"]},
 )
