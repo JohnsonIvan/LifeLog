@@ -23,16 +23,74 @@ At present, Arch Linux is the only supported platform for running the server.
 Documentation can be found online:
 https://life-log-server.readthedocs.io/en/master/
 
-# Development
-
-To setup a new development environment, run the `./Scripts/setup_dev.bash`
-script. This script will use `pacman` to install dependencies to your host, then
-setup a python virtual environment ("venv") and install further python
-dependencies there.
-
-To run the test suite, run the `Scripts/test.bash` script.
-
 # Installation
 
 Run `Scripts/deploy.bash`. This will generate a python package and install it
 and any other necessary files for running LLS.
+
+# Development
+
+## Setup
+
+Run this when setting up a new development environment:
+
+    ./Scripts/setup_dev.bash
+
+This script will use `pacman` to install dependencies to your host, then setup a
+python virtual environment ("venv") and install further python dependencies
+there.
+
+## Basic Developer Workflow
+
+Use this to run the server; it will automatically restart the server after you modify any files:
+
+    ./Scripts/flask.bash run
+
+Then you can use a REST client of your choice to actually call LLS's endpoints. For example:
+
+* Graphical tools:
+
+    * insomnia
+
+    * postman
+
+* CLI:
+
+    * httpie
+
+        $ http POST '127.0.0.1:5000/api/v1/weight/entry?datetime=1671905744&weight=100&units=kilograms' token:dev-key
+
+        HTTP/1.1 201 CREATED
+        Connection: close
+        Content-Length: 36
+        Content-Type: text/html; charset=utf-8
+        Date: Sat, 24 Dec 2022 18:21:57 GMT
+        Server: Werkzeug/2.2.2 Python/3.10.8
+
+        c15ccf2c-6938-41c8-897d-ce686d997f0a
+
+    * You could also use standard Linux commands, but they aren't optimized for
+      this usecase; they have a steeper learning curve and typically require
+      more typing:
+
+        * curl
+
+            $ curl -i -X POST --header token:dev-key '127.0.0.1:5000/api/v1/weight/entry?datetime=1671905744&weight=100&units=kilograms'
+            HTTP/1.1 201 CREATED
+            Server: Werkzeug/2.2.2 Python/3.10.8
+            Date: Sat, 24 Dec 2022 18:17:03 GMT
+            Content-Type: text/html; charset=utf-8
+            Content-Length: 36
+            Connection: close
+
+            65727f6e-09c1-452d-8663-a9edd4a589cc
+
+
+        * wget
+
+            $ wget --method=POST '127.0.0.1:5000/api/v1/weight/entry?datetime=1671905744&weight=100&units=kilograms' --header=token:dev-key -qO -
+            4e2c2321-c578-48d6-8221-3d2e523a14f3
+
+## Automated Tests
+
+    Scripts/test.bash
