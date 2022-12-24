@@ -77,7 +77,7 @@ def entry_add(userid):
         if weight is None: # pragma: no cover
             msg += "\tweight (float)\n"
         if units is None: # pragma: no cover
-            msg += "\tunits (float)\n"
+            msg += "\tunits (string)\n"
 
         return (msg, HTTPStatus.BAD_REQUEST)
 
