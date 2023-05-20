@@ -10,9 +10,10 @@ APP_NAME="LifeLogServer"
 
 if ! [ -e "$ENV_DIR" ]; then
 	echo "Could not detect virtual environment; making a new one."
-	python3 -m venv "$ENV_DIR"
+	python -m venv "$ENV_DIR"
 fi
 
+python -m venv --upgrade "$ENV_DIR"
 
 source "${ENV_DIR}/bin/activate"
 
