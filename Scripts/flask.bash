@@ -33,6 +33,7 @@ if [ "${1:-}" = "reinit-dev" ] ; then
 	"$this" dev-db "INSERT INTO users (userid) VALUES ('$USER_ID')"
 	"$this" dev-db "INSERT INTO tokens (token, userid, description) VALUES ('$KEY', '$USER_ID', 'Dev key')"
 	"$this" dev-db "INSERT INTO token_perms (token, permission) VALUES ('$KEY', 'ultimate')"
+
 	"$this" dev-db "INSERT INTO weight (id, userid, datetime, weight_kg) VALUES ('fec46a2e-cf9c-4dea-b5ef-5bc1aef34d8a', '$USER_ID', 1450483200, 70.5)"
 	"$this" dev-db "INSERT INTO weight (id, userid, datetime, weight_kg) VALUES ('9c4cfa98-2c09-4897-a0af-ab0503c6af72', '$USER_ID', 1450656000, 69.9)"
 	"$this" dev-db "INSERT INTO weight (id, userid, datetime, weight_kg) VALUES ('20db843d-b349-4589-8e8d-7e4b2d3d588d', '$USER_ID', 1460934000, 73.0)"
