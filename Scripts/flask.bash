@@ -20,7 +20,7 @@ fi
 F_DB="lifelog.sqlite"
 
 DEV_DB_DIR="instance"
-PROD_DB_DIR="/srv/LifeLog/Code/.venv/var/LifeLogServer-instance/"
+PROD_DB_DIR="/srv/LifeLog/venv/var/LifeLogServer-instance"
 
 DEV_DB="$DEV_DB_DIR/$F_DB"
 PROD_DB="$PROD_DB_DIR/$F_DB"
