@@ -94,3 +94,15 @@ Then you can use a REST client of your choice to actually call LLS's endpoints. 
 ## Automated Tests
 
     Scripts/test.bash
+
+## Misc Helpful commands
+
+Interacting with the database directly:
+
+* Open a shell in the dev database: `./Scripts/flask.bash dev-db`
+
+* Open a shell in the prod databse: `./Scripts/flask.bash prod-db`
+
+* To just run a single command: `./Scripts/flask.bash *-db 'SELECT * FROM USERS'`
+
+Reset the dev database: `./Scripts/flask.bash reinit-dev`
