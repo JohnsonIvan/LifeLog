@@ -44,3 +44,12 @@ CREATE TABLE weight (
   FOREIGN KEY(userid) REFERENCES users(userid),
   PRIMARY KEY (id)
 );
+
+CREATE TABLE weight_goal (
+  userid TEXT NOT NULL,
+  datetime_start INTEGER NOT NULL,
+  weight_kg_start REAL NOT NULL,
+  weight_change_kg_per_year REAL NOT NULL,
+  FOREIGN KEY(userid) REFERENCES users(userid),
+  PRIMARY KEY (userid, datetime_start)
+);

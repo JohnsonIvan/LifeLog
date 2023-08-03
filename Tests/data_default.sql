@@ -6,6 +6,8 @@ INSERT INTO weight (id, datetime, weight_kg, userid) VALUES ("9319a4e7-44ad-4008
 INSERT INTO weight (id, datetime, weight_kg, userid) VALUES ("148064f1-48bc-415d-9ff8-8a57d7ad8687", 300, 333, "cf1f8a6d-c3de-4987-9478-ed14fff7fe33");
 INSERT INTO weight (id, datetime, weight_kg, userid) VALUES ("689a747f-555d-4306-99b7-fceb649f929e", 400, 444, "cf1f8a6d-c3de-4987-9478-ed14fff7fe33");
 INSERT INTO weight (id, datetime, weight_kg, userid) VALUES ("ed58697b-2704-41eb-80b6-98982e33a079", 500, 555, "cf1f8a6d-c3de-4987-9478-ed14fff7fe33");
+INSERT INTO weight_goal (userid, datetime_start, weight_kg_start, weight_change_kg_per_year) VALUES ("cf1f8a6d-c3de-4987-9478-ed14fff7fe33",   0, 100, 47335389);
+INSERT INTO weight_goal (userid, datetime_start, weight_kg_start, weight_change_kg_per_year) VALUES ("cf1f8a6d-c3de-4987-9478-ed14fff7fe33", 250, 250, 50000000);
 
 
 INSERT INTO users (userid) VALUES ("32e6f3bd-f9ca-48db-8ee4-dc1fd1dc4f38");

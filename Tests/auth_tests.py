@@ -11,9 +11,6 @@ AUTH_TOKEN_BAD=AUTH_TOKEN+'oiawejklfxcvkjlweeeoisdvwe'
 
 AUTH_HEADERS={AUTH_HEADER: AUTH_TOKEN}
 
-AUTH_USERID_1='32e6f3bd-f9ca-48db-8ee4-dc1fd1dc4f38'
-AUTH_TOKEN_1='test-key-1'
-
 def run_tests(method, url, given_headers={}, expected_status=HTTPStatus.OK):
     assert expected_status != HTTPStatus.UNAUTHORIZED
     assert expected_status != HTTPStatus.FORBIDDEN

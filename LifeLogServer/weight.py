@@ -5,18 +5,20 @@ import matplotlib.dates as mpl_dates
 import matplotlib.pyplot as mpl_pyplot
 import time
 import uuid
+from collections import namedtuple
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as mpl_FigureCanvas
 
 from flask import request
 from http import HTTPStatus
 
-from . import database
 from . import auth
 from . import cache
+from . import constants
+from . import database
 
-__UNIT_DATA=[{"unit": "kilograms", "kg_per_unit": 1}, {"unit": "pounds", "kg_per_unit": 0.45359237}]
-__UNITS = list(map(lambda d: d['unit'], __UNIT_DATA))
+__UNIT_DATA=[{"unit": "kilograms", "kg_per_unit": 1}, {"unit": "pounds", "kg_per_unit": constants.KILOGRAMS_PER_POUND}]
+__UNITS = [ data['unit'] for data in __UNIT_DATA ]
 
 AUTH_WEIGHT_READ="weight-read"
 AUTH_WEIGHT_ADD="weight-add"
@@ -24,9 +26,16 @@ AUTH_WEIGHT_DESTRUCTIVE="weight-delete"
 
 bp = f.Blueprint('weight', __name__)
 
+Goal = namedtuple('Goal', ['datetime_start', 'weight_kg_start', 'weight_change_kg_per_year'])
+def get_goal_value(goal: Goal, time: datetime):
+    tmp_years = (time - goal.datetime_start) / constants.TIMEDELTA_YEAR
+    return goal.weight_kg_start + tmp_years * goal.weight_change_kg_per_year
+
 #maximum acceptable offset between our clock and the client's
 sMAX_TIME_ERROR = 300
 
+# TODO move this function and associated lookup table to constants.py?
+# (utils.py? conversions.py?)
 def kg_from_unsafe(value, units):
     if not isinstance(value, float):
         return None
@@ -225,6 +234,9 @@ def batch_get(userid):
     if before is None or since is None or limit is None or offset is None:
         return ("Query is missing missing at least one of the required int parameters: before, since, limit, offset\n", HTTPStatus.BAD_REQUEST)
 
+    t_since = datetime.datetime.fromtimestamp(since)
+    t_before = datetime.datetime.fromtimestamp(before)
+
     db = database.get_db()
 
     rows = db.execute('SELECT * FROM weight WHERE userid = ? AND ? <= datetime AND datetime < ? LIMIT ? OFFSET ?',
@@ -239,6 +251,7 @@ def batch_get(userid):
         time_format = request.args.get('time_format', '%Y-%m-%d', type=str) # '%Y-%m-%dT%H:%M:%S' maybe with '%z' at the end for timezone (seems to work?)
         marker_size = request.args.get('marker_size', None, type=int)
 
+        # TODO move all this to a function?
         times = []
         weights = []
         for row in rows:
@@ -249,6 +262,29 @@ def batch_get(userid):
 
         fig, ax = mpl_pyplot.subplots(nrows=1, ncols=1)
         ax.scatter(times, weights, s=marker_size)
+
+        time_min = min(times)
+        time_max = max(times)
+
+        # TODO move all this to a function?
+        init_goal = db.execute('SELECT datetime_start,weight_kg_start,weight_change_kg_per_year FROM weight_goal WHERE userid = ? AND datetime_start <= ? ORDER BY datetime_start ASC LIMIT 1',
+               (userid, since)).fetchall()
+        rows = db.execute('SELECT datetime_start,weight_kg_start,weight_change_kg_per_year FROM weight_goal WHERE userid = ? AND ? < datetime_start AND datetime_start <= ? ORDER BY datetime_start ASC LIMIT ?',
+               (userid, since, before, limit)).fetchall()
+        rows = init_goal + rows
+        weight_goals = [ Goal(datetime.datetime.fromtimestamp(row['datetime_start']), row['weight_kg_start'], row['weight_change_kg_per_year']) for row in rows ]
+        for i in range(len(weight_goals)):
+            goal = weight_goals[i]
+            t_start = max(goal.datetime_start, t_since)
+            w_start = get_goal_value(goal, t_start)
+
+            if i + 1 < len(weight_goals):
+                t_stop = weight_goals[i + 1].datetime_start
+            else:
+                t_stop = t_before
+            w_stop = get_goal_value(goal, t_stop)
+
+            ax.plot([t_start, t_stop], [w_start, w_stop])
 
         ax.xaxis.set_major_formatter(mpl_dates.DateFormatter(time_format))
         ax.set_ylabel('Weight (kg)')

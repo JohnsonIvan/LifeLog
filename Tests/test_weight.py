@@ -318,7 +318,7 @@ def test_entry_update(monkeypatch, app, client, entry_id, id_exists, add_units, 
 @pytest.mark.unit
 @pytest.mark.parametrize("input_value, input_unit, expected, max_error", [
     (100.0,   "kilograms", 100.0,    None),
-    (100.0,   "pounds",    45.35924, 0.01),
+    (100.0,   "pounds",    45.35924, 0.00001),
     (100.0,   "pM8FqiQn",  None,     None),
     (100,     "kilograms", None,     None),
     ("foo",   "kilograms", None,     None),
