@@ -263,11 +263,8 @@ def batch_get(userid):
         fig, ax = mpl_pyplot.subplots(nrows=1, ncols=1)
         ax.scatter(times, weights, s=marker_size)
 
-        time_min = min(times)
-        time_max = max(times)
-
         # TODO move all this to a function?
-        init_goal = db.execute('SELECT datetime_start,weight_kg_start,weight_change_kg_per_year FROM weight_goal WHERE userid = ? AND datetime_start <= ? ORDER BY datetime_start ASC LIMIT 1',
+        init_goal = db.execute('SELECT datetime_start,weight_kg_start,weight_change_kg_per_year FROM weight_goal WHERE userid = ? AND datetime_start <= ? ORDER BY datetime_start DESC LIMIT 1',
                (userid, since)).fetchall()
         rows = db.execute('SELECT datetime_start,weight_kg_start,weight_change_kg_per_year FROM weight_goal WHERE userid = ? AND ? < datetime_start AND datetime_start <= ? ORDER BY datetime_start ASC LIMIT ?',
                (userid, since, before, limit)).fetchall()
