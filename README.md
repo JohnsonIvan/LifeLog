@@ -30,6 +30,18 @@ and any other necessary files for running LLS.
 
 # Development
 
+## NixOS
+
+TODO port the rest of this section to NixOS
+
+Setup:
+
+1. Run `nix-shell default.nix`
+
+2. ???
+
+3. Profit!
+
 ## Setup
 
 Run this when setting up a new development environment:
