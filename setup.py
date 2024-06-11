@@ -10,4 +10,9 @@ setup(
         'flask', 'waitress>=2.1.2', 'matplotlib>=3.2.1', 'numpy>=1.18.5'
     ],
     extras_require={"test": ["pytest", "coverage"]},
+    entry_points={
+        'console_scripts': [
+            'lifelogserver-cli = LifeLogServer.cli:main',
+        ],
+    },
 )
