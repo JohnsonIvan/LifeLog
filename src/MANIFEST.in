@@ -1,0 +1,6 @@
+include LifeLogServer/schema.sql
+include Scripts/launch.bash
+include Scripts/lifelogserver.service
+include Scripts/net.ivanjohnson.lifelog.conf
+
+global-exclude *.pyc
