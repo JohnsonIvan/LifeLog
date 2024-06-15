@@ -9,3 +9,4 @@ __pycache__/
 /lifelogserver.egg-info/
 /dist
 /build
+/.bash_history
