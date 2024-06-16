@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 let
-	lls = import ./default.nix { inherit pkgs; };
+	lls = import ./derivation.nix { inherit pkgs; };
 in {
 	config = {
 		environment.systemPackages = with pkgs; [

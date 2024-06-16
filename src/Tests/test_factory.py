@@ -51,4 +51,4 @@ def test_ping(client):
 @pytest.mark.unit
 def test_apiv(client):
     response = client.get('/api_version')
-    assert response.data == bytes(pkg_resources.require("LifeLogServer")[0].version, encoding=response.charset)
+    assert response.data == bytes(pkg_resources.require("LifeLogServer")[0].version, encoding='utf-8')

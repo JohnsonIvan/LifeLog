@@ -81,7 +81,6 @@ def test_get_happy(client, ret_format):
     params = urllib.parse.urlencode(params)
     response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
-    assert response.charset == 'utf-8'
     if ret_format == "csv":
         assert response.mimetype == 'text/csv'
         assert fuzzy_equals(BATCH_GET_HAPPY_RESULTS, parse_csv(response.data))
@@ -130,7 +129,7 @@ def test_entry_add_happy(monkeypatch, client):
     params = urllib.parse.urlencode(BATCH_GET_ALL_PARAMS)
     response = client.get(BATCH_URL + '?' + params, headers=auth_tests.AUTH_HEADERS)
     assert response.status_code == HTTPStatus.OK
-    results = response.data.decode(response.charset, "strict").rstrip().split('\n')
+    results = response.data.decode('utf-8', "strict").rstrip().split('\n')
     assert len(results) == 5
 
 

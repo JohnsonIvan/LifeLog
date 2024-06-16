@@ -1,9 +1,9 @@
 {
 	pkgs,
-	python3Packages,
 }:
-
-python3Packages.buildPythonApplication rec {
+let
+	python3Packages = pkgs.python3Packages;
+in python3Packages.buildPythonApplication rec {
 	pname = "lifelogserver";
 	version = "0.0.1"; # TODO: de-dupe. Somehow. Or at least write a unit test?
 
