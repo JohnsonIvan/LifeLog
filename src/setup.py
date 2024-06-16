@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='lifelogserver',
-    version='0.8.0a0.dev0',
+    version='0.8.0a0.dev0', # TODO: de-dupe. Somehow. Or at least write a unit test?
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,

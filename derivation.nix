@@ -5,7 +5,7 @@ let
 	python3Packages = pkgs.python3Packages;
 in python3Packages.buildPythonApplication rec {
 	pname = "lifelogserver";
-	version = "0.0.1"; # TODO: de-dupe. Somehow. Or at least write a unit test?
+	version = "0.8.0a0.dev0"; # TODO: de-dupe. Somehow. Or at least write a unit test?
 
 	src = ./src;
 
