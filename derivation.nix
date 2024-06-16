@@ -44,6 +44,7 @@ python3Packages.buildPythonApplication rec {
 	checkPhase = "
 		runHook preCheck
 		coverage run -m pytest
+		status=0
 		coverage report --fail-under=100 || status=$?
 		coverage html -d \"$out/Coverage\"
 		[ $status -eq 0 ]
