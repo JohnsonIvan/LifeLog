@@ -1,21 +1,15 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 #set -x
 DIR="$(dirname "$0")"
 cd "$DIR"
 this="$(pwd)/$(basename "$0")"
-GIT="$(git rev-parse --show-toplevel)"
-cd "$GIT"
+#GIT="$(git rev-parse --show-toplevel)"
+cd ~/Workspaces/4/LLS/
 
-export FLASK_APP=./
+cd src
+export FLASK_APP=./LifeLogServer
 export FLASK_DEBUG=1
-
-if [ -z ${VIRTUAL_ENV+x} ]; then
-	echo 'Warning: you have not activated the python virtual environment;'
-	echo 'You must do so before running this script'
-	exit 1
-fi
-
 
 F_DB="lifelog.sqlite"
 

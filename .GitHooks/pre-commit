@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 #exit on Error (even within a pipeline) and treat Unset variables as errors
 #set -euo pipefail
 #for tracing
@@ -9,7 +9,7 @@ git stash push -m "Precommit stash" --quiet --include-untracked --keep-index
 cStash_post=$(git stash list | wc -l)
 
 echo "Running tests..."
-./Scripts/test.bash > /dev/null
+./src/Scripts/test.bash > /dev/null
 code=$?
 if [ "$code" = "0" ]; then
 	echo "Tests passed"
@@ -23,7 +23,7 @@ else
 fi
 
 echo "Running coverage check..."
-./Scripts/test.bash --coverage --fail > /dev/null
+./src/Scripts/test.bash --coverage --fail > /dev/null
 code=$?
 if [ "$code" = "0" ]; then
 	echo "Coverage passed"

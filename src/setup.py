@@ -12,6 +12,7 @@ setup(
     extras_require={"test": ["pytest", "coverage"]},
     scripts=[
         'Scripts/launch.bash',
+        'Scripts/flask.bash',
     ],
     entry_points={
         'console_scripts': [

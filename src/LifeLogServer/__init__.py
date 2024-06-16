@@ -1,10 +1,11 @@
 import flask
 import os
-import pkg_resources
 
 from . import database
 from . import weight
 
+#from importlib.metadata import version
+#API_VERSION = version('lls')
 API_VERSION = "0.0.1"
 
 DEFAULT_SECRET_KEY='dev'

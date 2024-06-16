@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 #exit on Error (even within a pipeline) and treat Unset variables as errors
 set -euo pipefail
 #for tracing
@@ -6,11 +6,6 @@ set -euo pipefail
 
 DIR_COVERAGE=".htmlcov"
 FILE_COVERAGE="index.html"
-
-if [ -z "${VIRTUAL_ENV+x}" ]; then
-	echo "Error: the virtual environment is not active"
-	exit 1
-fi
 
 if [ "${1:-}" == "--help" ]; then
 	echo "Supported options:"
