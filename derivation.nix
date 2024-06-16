@@ -38,6 +38,15 @@ python3Packages.buildPythonApplication rec {
 	# Tests
 	doCheck = true;
 	nativeCheckInputs = [
-		#python3Packages.pytest
+		python3Packages.coverage
+		python3Packages.pytest
 	];
+	checkPhase = "
+		runHook preCheck
+		coverage run -m pytest
+		coverage report --fail-under=100 || status=$?
+		coverage html -d \"$out/Coverage\"
+		[ $status -eq 0 ]
+		runHook postCheck
+	";
 }

@@ -4,9 +4,8 @@ import os
 from . import database
 from . import weight
 
-#from importlib.metadata import version
-#API_VERSION = version('lls')
-API_VERSION = "0.0.1"
+from importlib.metadata import version
+API_VERSION = version('LifeLogServer')
 
 DEFAULT_SECRET_KEY='dev'
 

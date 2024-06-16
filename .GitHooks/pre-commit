@@ -8,27 +8,13 @@ cStash_pre=$(git stash list | wc -l)
 git stash push -m "Precommit stash" --quiet --include-untracked --keep-index
 cStash_post=$(git stash list | wc -l)
 
-echo "Running tests..."
-./src/Scripts/test.bash > /dev/null
+echo "Building..."
+nix-build
 code=$?
 if [ "$code" = "0" ]; then
-	echo "Tests passed"
+	echo "Build passed"
 else
-	echo "TESTS FAILED!"
-	echo 'Would you like to ignore this failure? (y/*)'
-	read -r response < /dev/tty
-	if [ "$response" = "y" ]; then
-		code=0
-	fi
-fi
-
-echo "Running coverage check..."
-./src/Scripts/test.bash --coverage --fail > /dev/null
-code=$?
-if [ "$code" = "0" ]; then
-	echo "Coverage passed"
-else
-	echo "COVERAGE FAILED!"
+	echo "BUILD FAILED!"
 	echo 'Would you like to ignore this failure? (y/*)'
 	read -r response < /dev/tty
 	if [ "$response" = "y" ]; then
