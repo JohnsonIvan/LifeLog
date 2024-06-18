@@ -4,6 +4,7 @@
 /.htmlcov/
 /.venv
 /Docs/Build/
+/open_files.txt
 /result
 /src/build
 /src/dist
