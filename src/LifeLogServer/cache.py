@@ -13,6 +13,7 @@ from . import auth
 
 CACHE_HEADER = "cacheid"
 
+
 def cache(func=None, /, **factoryKwargs):
     if not func:
         return functools.partial(cache)
@@ -27,16 +28,20 @@ def cache(func=None, /, **factoryKwargs):
         try:
             uuid.UUID(cacheid)
         except ValueError:
-            return (f'{CACHE_HEADER} header could not be parsed as a UUID (RFC-4122)\n', HTTPStatus.BAD_REQUEST)
+            return (
+                f"{CACHE_HEADER} header could not be parsed as a UUID (RFC-4122)\n",
+                HTTPStatus.BAD_REQUEST,
+            )
 
         db = database.get_db()
-        rows = db.execute('SELECT * FROM cache WHERE uuid = ? AND token = ?', (cacheid, givenToken)).fetchall()
-        assert(len(rows) <= 1)
+        rows = db.execute(
+            "SELECT * FROM cache WHERE uuid = ? AND token = ?", (cacheid, givenToken)
+        ).fetchall()
+        assert len(rows) <= 1
         if len(rows) == 1:
             row = rows[0]
-            cResponse = pickle.loads(row['response'])
+            cResponse = pickle.loads(row["response"])
             return cResponse
-
 
         request_time = int(time.time())
 
@@ -45,8 +50,10 @@ def cache(func=None, /, **factoryKwargs):
         response.freeze()
         bResponse = pickle.dumps(response)
 
-        db.execute('INSERT INTO cache (uuid, token, request_time, response) VALUES (?, ?, ?, ?)',
-                                      (cacheid, givenToken, request_time, bResponse))
+        db.execute(
+            "INSERT INTO cache (uuid, token, request_time, response) VALUES (?, ?, ?, ?)",
+            (cacheid, givenToken, request_time, bResponse),
+        )
 
         return response
 

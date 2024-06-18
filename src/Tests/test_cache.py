@@ -10,15 +10,19 @@ import random
 import uuid
 
 _count = 0
+
+
 @LifeLogServer.cache.cache
 def _foo():
     global _count
     _count += 1
     return "foo"
 
+
 _rd = random.Random()
 _rd.seed(0)
-_default_headers = {LifeLogServer.auth.AUTH_HEADER: 'asdf'}
+_default_headers = {LifeLogServer.auth.AUTH_HEADER: "asdf"}
+
 
 def _new_uuid_str():
     return str(uuid.UUID(int=_rd.getrandbits(128)))
@@ -33,6 +37,7 @@ def _simple_test(app, headers):
         _foo()
         assert _count == initial + 1
 
+
 @pytest.mark.unit
 def test_authenticated(app):
     headers = _default_headers.copy()
@@ -40,16 +45,18 @@ def test_authenticated(app):
     headers[LifeLogServer.cache.CACHE_HEADER] = _new_uuid_str()
     _simple_test(app, headers)
 
+
 @pytest.mark.unit
 def test_bad_cacheid(app):
     headers = _default_headers.copy()
 
-    headers[LifeLogServer.cache.CACHE_HEADER] = _new_uuid_str() + 'a'
+    headers[LifeLogServer.cache.CACHE_HEADER] = _new_uuid_str() + "a"
 
     with app.test_request_context(headers=headers):
         ret = _foo()
         status_code = flask.make_response(ret).status_code
-        assert(status_code == HTTPStatus.BAD_REQUEST)
+        assert status_code == HTTPStatus.BAD_REQUEST
+
 
 @pytest.mark.unit
 def test_noncaching(app):
@@ -65,6 +72,7 @@ def test_noncaching(app):
         assert _count == initial + 2
         _foo()
         assert _count == initial + 3
+
 
 @pytest.mark.unit
 def test_multi_request(app):
