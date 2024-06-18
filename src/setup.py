@@ -14,7 +14,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "lifelogserver-cli = LifeLogServer.cli:main",
+            "lifelogserver = LifeLogServer.cli:main",
         ],
     },
 )

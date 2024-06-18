@@ -31,16 +31,30 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from LifeLogServer import create_app
+import LifeLogServer
 
 import pkg_resources
 import pytest
 
+import conftest
+
 
 @pytest.mark.unit
-def test_config():
-    assert not create_app().testing
-    assert create_app({"TESTING": True}).testing
+def test_default_key():
+    with pytest.raises(LifeLogServer.DefaultKeyException):
+        app = LifeLogServer.create_app(
+            config_file="/dev/null",
+            database_file="/dev/null",
+        )
+
+
+@pytest.mark.unit
+def test_testing():
+    app = LifeLogServer.create_app(
+        config_file=conftest.DEFAULT_CONFIG_FILE,
+        database_file="/dev/null",
+    )
+    assert app.testing
 
 
 @pytest.mark.unit

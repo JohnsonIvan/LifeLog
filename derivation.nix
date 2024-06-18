@@ -13,6 +13,7 @@ in python3Packages.buildPythonApplication rec {
 	# (e.g. available in nix-shell)
 	propagatedNativeBuildInputs = [
 		pkgs.sqlite
+		python3Packages.black
 		python3Packages.flask
 		python3Packages.matplotlib
 		python3Packages.numpy

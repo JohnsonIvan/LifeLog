@@ -39,6 +39,10 @@ import pytest
 # import pdb; pdb.set_trace()
 import LifeLogServer
 
+# The path is relative to the application directory, which roughly
+# corresponds to `<this git repo>/src/LifeLogServer`
+DEFAULT_CONFIG_FILE = "../Tests/tests.conf"
+
 with open(os.path.join(os.path.dirname(__file__), "data_default.sql"), "rb") as f:
     _data_sql = f.read().decode("utf8")
 
@@ -48,10 +52,8 @@ def app():
     db_fd, db_path = tempfile.mkstemp()
 
     app = LifeLogServer.create_app(
-        {
-            "TESTING": True,
-            "DATABASE": db_path,
-        }
+        config_file=DEFAULT_CONFIG_FILE,
+        database_file=db_path,
     )
 
     with app.app_context():

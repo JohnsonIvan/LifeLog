@@ -169,9 +169,10 @@ def do_migrations():
     assert new_db_version == cur_version
 
 
-def init_app(app):
+def init_app(app, database_file):
     """Register database functions with the Flask app. This is called by
     the application factory.
     """
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+    app.config["DATABASE"] = database_file
