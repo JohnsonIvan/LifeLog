@@ -2,10 +2,10 @@ import flask
 import os
 import pkg_resources
 
-from LifeLogServer import database
-from LifeLogServer import weight
+from . import database
+from . import weight
 
-API_VERSION = pkg_resources.require("LifeLogServer")[0].version
+API_VERSION = "0.0.1"
 
 DEFAULT_SECRET_KEY='dev'
 

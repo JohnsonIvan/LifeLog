@@ -87,6 +87,7 @@ def test_get_happy(client, ret_format):
         assert fuzzy_equals(BATCH_GET_HAPPY_RESULTS, parse_csv(response.data))
     elif ret_format == "scatter":
         assert response.mimetype == 'image/png'
+    assert 1 == 2
 
 @pytest.mark.unit
 def test_batch_get_bad_format(client):

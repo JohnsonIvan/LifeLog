@@ -38,6 +38,10 @@ Setup:
 
 1. Run `nix-shell default.nix`
 
+2. Run `src/Scripts/flask.bash run`?
+
+    FLASK_APP=./src/LifeLogServer/  FLASK_DEBUG=1 /nix/store/iaj1sn0kq6ij088ra94mns3v40imw8ml-python3.11-flask-2.3.3/bin/flask run --host=0.0.0.0
+
 2. ???
 
 3. Profit!

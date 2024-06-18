@@ -14,13 +14,18 @@
 
 buildPythonPackage rec {
 	pname = "lifelogserver";
-	version = "0.0.1";
+	version = "0.0.1"; # TODO: de-dupe. Somehow. Or at least write a unit test?
 
 	src = ./src;
 
 	build-system = [
+		flask
 		setuptools
 		wheel
+		packaging
+		waitress
+		matplotlib
+		numpy
 	];
 
 	propagatedBuildInputs = [
@@ -33,7 +38,7 @@ buildPythonPackage rec {
 		numpy
 	];
 
-	doCheck = false;
+	doCheck = true;
 
 	#pythonImportsCheck = [
 	#	"toolz.itertoolz"
