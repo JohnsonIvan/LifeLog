@@ -1,6 +1,9 @@
-import argparse  # pragma: no cover
-import LifeLogServer  # pragma: no cover
-from flask import Flask  # pragma: no cover
+if True:  # pragma: no cover
+    from flask import Flask
+
+    import LifeLogServer
+    import argparse
+    import waitress
 
 
 def start_init(subparser):  # pragma: no cover
@@ -12,14 +15,23 @@ def start_init(subparser):  # pragma: no cover
         "--config-file",
         default="/etc/lifelogserver/server.cfg",
     )
-
+    subparser.add_argument(
+        "--port",
+        default=5000,
+        type=int
+    )
 
 def start_main(args):  # pragma: no cover
     app = LifeLogServer.create_app(
         config_file=args.config_file,
         database_file=args.database_file,
     )
-    app.run(host="0.0.0.0", port=5000)
+    # TODO: is it better to use the os.exec(['flask', '--debug', ...]) instead?
+    # ditto for waitress?
+    if app.config['TESTING']:
+        app.run(host="0.0.0.0", port=args.port)
+    else:
+        waitress.serve(app, listen=f'*:{args.port}')
 
 
 def main():  # pragma: no cover
