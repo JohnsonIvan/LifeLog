@@ -2,8 +2,6 @@ CREATE TABLE database (
   versionno TEXT NOT NULL
 );
 
-
-
 CREATE TABLE users (
   userid TEXT NOT NULL,
   PRIMARY KEY (userid)

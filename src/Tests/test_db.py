@@ -35,7 +35,11 @@ import sqlite3
 import pytest
 
 from http import HTTPStatus
-
+import conftest
+import tempfile
+import test_weight
+import auth_tests
+import os
 
 import LifeLogServer
 
@@ -51,20 +55,35 @@ def test_get_close_db(app):
 
     assert "closed" in str(e.value)
 
-
+# Verify that data persists between reboots
 @pytest.mark.unit
-def test_init_db_command(runner, monkeypatch):
-    class Recorder(object):
-        called = False
+def test_data_persists():
+    db_fd, db_path = tempfile.mkstemp()
 
-    def fake_init_db():
-        Recorder.called = True
+    app = LifeLogServer.create_app(
+        config_file=conftest.DEFAULT_CONFIG_FILE,
+        database_file=db_path,
+    )
 
-    monkeypatch.setattr("LifeLogServer.database.init_db", fake_init_db)
-    result = runner.invoke(args=["init-db"])
-    assert "Initialized" in result.output
-    assert Recorder.called
+    new_entry_timestamp=19636
+    new_entry_value=18301
 
+    app.test_client().post(f"{test_weight.ENTRY_URL}?weight={new_entry_value}&datetime={new_entry_timestamp}", headers=auth_tests.AUTH_HEADERS)
+    del app
+
+    app = LifeLogServer.create_app(
+        config_file=conftest.DEFAULT_CONFIG_FILE,
+        database_file=db_path,
+    )
+
+    results=app.test_client().get(f"{test_weight.BATCH_URL}?since={new_entry_timestamp}&before={new_entry_timestamp+1}", headers=auth_tests.AUTH_HEADERS)
+    results=test_weight.parse_csv(results.data)
+    print(results)
+    assert(len(results) == 1)
+    del app
+
+    os.close(db_fd)
+    os.unlink(db_path)
 
 @pytest.mark.unit
 @pytest.mark.parametrize(

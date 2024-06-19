@@ -36,6 +36,7 @@ import sqlite3
 import click
 import flask as f
 import functools
+import os
 import LifeLogServer
 import packaging.version
 
@@ -51,10 +52,10 @@ def get_db(new_connection=False):
     are made. This is generally only a concern if `new_connection` is set to
     true.
     """
+    database_file = f.current_app.config["DATABASE"]
+
     if new_connection:
-        db = sqlite3.connect(
-            f.current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
-        )
+        db = sqlite3.connect(database_file, detect_types=sqlite3.PARSE_DECLTYPES)
         db.row_factory = sqlite3.Row
         return db
     if "db" not in f.g:
@@ -72,17 +73,6 @@ def close_db(e=None):
 
     if db is not None:
         db.close()
-
-
-def init_db():
-    """Clear existing data and create new tables."""
-    with get_db(new_connection=True) as db:
-        with f.current_app.open_resource("schema.sql") as file:
-            db.executescript(file.read().decode("utf8"))
-            db.execute(
-                "INSERT INTO database (versionno) VALUES (?);",
-                (LifeLogServer.API_VERSION,),
-            )
 
 
 def get_db_version():
@@ -112,14 +102,6 @@ def autocommit_db(func=None, /):
         return ret
 
     return wrapper
-
-
-@click.command("init-db")
-@f.cli.with_appcontext
-def init_db_command():
-    """Clear existing data and create new tables."""
-    init_db()
-    click.echo("Initialized the database.")
 
 
 __migrations = {}
@@ -174,5 +156,14 @@ def init_app(app, database_file):
     the application factory.
     """
     app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_command)
     app.config["DATABASE"] = database_file
+
+    if not os.path.isfile(database_file) or os.path.getsize(database_file) == 0:
+        with app.app_context():
+            with get_db(new_connection=True) as db:
+                with f.current_app.open_resource("schema.sql") as file:
+                    db.executescript(file.read().decode("utf8"))
+                    db.execute(
+                        "INSERT INTO database (versionno) VALUES (?);",
+                        (LifeLogServer.API_VERSION,),
+                    )

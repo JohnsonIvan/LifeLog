@@ -37,22 +37,25 @@ import pkg_resources
 import pytest
 
 import conftest
+import tempfile
 
 
 @pytest.mark.unit
 def test_default_key():
+    db_fd, db_path = tempfile.mkstemp()
     with pytest.raises(LifeLogServer.DefaultKeyException):
         app = LifeLogServer.create_app(
             config_file="/dev/null",
-            database_file="/dev/null",
+            database_file=db_path,
         )
 
 
 @pytest.mark.unit
 def test_testing():
+    db_fd, db_path = tempfile.mkstemp()
     app = LifeLogServer.create_app(
         config_file=conftest.DEFAULT_CONFIG_FILE,
-        database_file="/dev/null",
+        database_file=db_path,
     )
     assert app.testing
 
