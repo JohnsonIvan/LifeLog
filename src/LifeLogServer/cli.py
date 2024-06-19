@@ -15,11 +15,8 @@ def start_init(subparser):  # pragma: no cover
         "--config-file",
         default="/etc/lifelogserver/server.cfg",
     )
-    subparser.add_argument(
-        "--port",
-        default=5000,
-        type=int
-    )
+    subparser.add_argument("--port", default=5000, type=int)
+
 
 def start_main(args):  # pragma: no cover
     app = LifeLogServer.create_app(
@@ -28,10 +25,10 @@ def start_main(args):  # pragma: no cover
     )
     # TODO: is it better to use the os.exec(['flask', '--debug', ...]) instead?
     # ditto for waitress?
-    if app.config['TESTING']:
+    if app.config["TESTING"]:
         app.run(host="0.0.0.0", port=args.port)
     else:
-        waitress.serve(app, listen=f'*:{args.port}')
+        waitress.serve(app, listen=f"*:{args.port}")
 
 
 def main():  # pragma: no cover

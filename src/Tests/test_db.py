@@ -55,6 +55,7 @@ def test_get_close_db(app):
 
     assert "closed" in str(e.value)
 
+
 # Verify that data persists between reboots
 @pytest.mark.unit
 def test_data_persists():
@@ -65,10 +66,13 @@ def test_data_persists():
         database_file=db_path,
     )
 
-    new_entry_timestamp=19636
-    new_entry_value=18301
+    new_entry_timestamp = 19636
+    new_entry_value = 18301
 
-    app.test_client().post(f"{test_weight.ENTRY_URL}?weight={new_entry_value}&datetime={new_entry_timestamp}", headers=auth_tests.AUTH_HEADERS)
+    app.test_client().post(
+        f"{test_weight.ENTRY_URL}?weight={new_entry_value}&datetime={new_entry_timestamp}",
+        headers=auth_tests.AUTH_HEADERS,
+    )
     del app
 
     app = LifeLogServer.create_app(
@@ -76,14 +80,18 @@ def test_data_persists():
         database_file=db_path,
     )
 
-    results=app.test_client().get(f"{test_weight.BATCH_URL}?since={new_entry_timestamp}&before={new_entry_timestamp+1}", headers=auth_tests.AUTH_HEADERS)
-    results=test_weight.parse_csv(results.data)
+    results = app.test_client().get(
+        f"{test_weight.BATCH_URL}?since={new_entry_timestamp}&before={new_entry_timestamp+1}",
+        headers=auth_tests.AUTH_HEADERS,
+    )
+    results = test_weight.parse_csv(results.data)
     print(results)
-    assert(len(results) == 1)
+    assert len(results) == 1
     del app
 
     os.close(db_fd)
     os.unlink(db_path)
+
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
