@@ -25,15 +25,15 @@ in {
 			group = "lls";
 		};
 
-		#systemd.services."lifelog_server" = {
-		#		description = "Lifelog server";
-		#		wantedBy = [ "default.target" ];
-		#		serviceConfig = {
-		#			Type = "exec";
-		#			ExecStart = "lifelogserver start";
-		#			User="lls";
-		#			Group="lls";
-		#		};
-		#};
+		systemd.services."lifelog_server" = {
+				description = "Lifelog server";
+				wantedBy = [ "default.target" ];
+				serviceConfig = {
+					Type = "exec";
+					ExecStart = "${lls}/bin/lifelogserver start";
+					User="lls";
+					Group="lls";
+				};
+		};
 	};
 }
