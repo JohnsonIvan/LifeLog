@@ -1,5 +1,6 @@
 from . import database
 
+
 @database.migration("0.7.0", "0.7.2")
 @database.migration("0.7.1", "0.7.2")
 @database.migration("0.7.2", "0.8.0a0.dev0")
