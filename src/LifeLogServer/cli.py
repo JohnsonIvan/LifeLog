@@ -9,7 +9,7 @@ if True:  # pragma: no cover
 def start_init(subparser):  # pragma: no cover
     subparser.add_argument(
         "--database-file",
-        default="/var/lib/lifelogserver/database.sqlite",
+        default=database.DEFAULT_DATABASE_LOCATION,
     )
     subparser.add_argument(
         "--config-file",

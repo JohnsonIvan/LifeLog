@@ -42,6 +42,8 @@ import packaging.version
 
 from http import HTTPStatus
 
+DEFAULT_DATABASE_LOCATION="/var/lib/lifelogserver/database.sqlite"
+
 
 def get_db(new_connection=False):
     """Connect to the application's configured database. With the default value
@@ -72,6 +74,7 @@ def close_db(e=None):
     db = f.g.pop("db", None)
 
     if db is not None:
+        db.commit()
         db.close()
 
 
@@ -137,15 +140,17 @@ def do_migrations():
         return
 
     assert db_version < cur_version
+
     name = __get_migration_name(db_version, cur_version)
     if name not in __migrations:
         raise Exception(
-            f"The code version ({cur_version}) is newer than the database version ({db_version}), and there is no known method for migrating the database directly."
+            f"There is no known method for updating the database directly from version {db_version} to version {cur_version}."
         )
     func = __migrations[name]
     db = get_db()
     func(db)
     db.execute("UPDATE database SET versionno = ?", (str(cur_version),))
+    db.commit()
 
     new_db_version = packaging.version.parse(get_db_version())
     assert new_db_version == cur_version
