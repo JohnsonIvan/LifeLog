@@ -4,12 +4,13 @@ if True:  # pragma: no cover
     import LifeLogServer
     import argparse
     import waitress
+    import subprocess
 
 
 def start_init(subparser):  # pragma: no cover
     subparser.add_argument(
         "--database-file",
-        default=database.DEFAULT_DATABASE_LOCATION,
+        default=LifeLogServer.database.DEFAULT_DATABASE_LOCATION,
     )
     subparser.add_argument(
         "--config-file",
@@ -31,6 +32,26 @@ def start_main(args):  # pragma: no cover
         waitress.serve(app, listen=f"*:{args.port}")
 
 
+def db_shell_init(subparser):  # pragma: no cover
+    subparser.add_argument(
+        "--database-file",
+        default=LifeLogServer.database.DEFAULT_DATABASE_LOCATION,
+    )
+
+
+def db_shell_main(args):  # pragma: no cover
+
+    # TODO p:H: get automatic recompilation working; don't want to run
+    # `nix-build` every single time
+
+    # TODO actually get this working, then use it to debug failure in prod
+
+    # TODO add support for passing in arbitrary arguments?
+    # -> e.g. `lls db_shell "SELECT * FROM foo"`
+    # -> (or not; echo 'SELECT * FROM foo' | lls db_shell` is just as effective?)
+    subprocess.run(["sqlite3", args.database_file])
+
+
 def main():  # pragma: no cover
     parser = argparse.ArgumentParser()
 
@@ -42,6 +63,11 @@ def main():  # pragma: no cover
             "init": start_init,
             "main": start_main,
             "help": "Launch the lifelog server",
+        },
+        "db-shell": {
+            "init": db_shell_init,
+            "main": db_shell_main,
+            "help": "Open a shell for the database",
         },
     }
 
